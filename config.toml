@@ -1,4 +1,4 @@
-baseurl = "https://dataplayground.netlify.com"
+baseurl = "https://dataplayground.netlify.com/"
 theme = "cocoa-eh-hugo-theme"
 builddrafts = false
 canonifyurls = true
