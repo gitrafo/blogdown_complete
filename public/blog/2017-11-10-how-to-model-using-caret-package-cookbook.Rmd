@@ -1,0 +1,220 @@
+---
+title: "How to model using caret package - cookbook"
+author: "Petr Schönbauer"
+date: "2017-11-10"
+slug: how-to-model-using-caret-package-cookbook
+categories: []
+tags:
+  - R
+  - model
+  - glmnet
+  - random forest
+output:
+  blogdown::html_page:
+    toc: true
+    fig_width: 6
+    dev: "svg"
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Hello. Purpose of this post is to share and learn basics of modeling, sort of a simple "cookbook" how to apply several type of models (glmnet and random forest in this case) on the same train/test splits using caret package, evaluate and compare its performance. Some sort of reference. We´re going to predict breast cancer diagnosis (malign "M" or benign "B) from Kaggle´s [data set](https://www.kaggle.com/uciml/breast-cancer-wisconsin-data). Let´s get started:)
+
+```{r, echo=TRUE, message=FALSE, warning=FALSE}
+# load libraries
+library(tidyverse)
+library(glmnet)
+library(ranger)
+library(caret)
+library(caTools)
+```
+
+# Data wrangling
+
+## Load data, remove redundat variables
+
+```{r, message=FALSE, warning=FALSE}
+# load data
+df <- read_csv("../../static/data/breast_data.csv")
+
+# glimpse raw data
+df %>% glimpse
+
+# remove redundat columns
+df <- df %>% 
+  select(-id, -X33)
+
+# convert diagnosis as factor
+df$diagnosis <- as.factor(df$diagnosis)
+```
+
+## Summary of data
+
+```{r}
+# propotion of benign/malignant
+table(df$diagnosis)
+prop.table(table(df$diagnosis))
+
+# are there any missing values?
+any(is.na(df))
+```
+
+In total:
+
+*  569 observations
+    *  357 benign (62%)
+    *  212 malignant (37%)
+*  30 predictor variables
+*  no missing values
+
+# Models
+
+## Create common validation indicies, `trainControl`
+
+Start with dividing predictors (features) and response (class) into separated variables `df_x` and `df_y`.
+
+```{r}
+# subset predictors variables
+df_x <- df %>% select(-diagnosis)
+
+# subset response variable
+df_y <- df$diagnosis
+```
+
+In order to achieve fair comparison of models we have to train and test models on the same train/test splits. `createFolds` seems to be covinient way how to achieve such splits. The outcome (indices) are used later as an `index` parameter of common `trainControl` object for all tested models.
+
+```{r}
+# create indices for each fold
+my_folds <- createFolds(df_y, k = 10)
+```
+
+`my_folds` now contains indices of held-out (validation) samples of each fold. In addition distribution of class (benign / malignant) is preserved.
+
+```{r}
+# structure of "my_fold"
+my_folds %>% glimpse
+# distribution of class is preserved in each fold
+my_folds %>% 
+  map_df(~prop.table(table(df_y[.])))
+```
+
+```{r}
+# create trainControl object
+my_trainControl <- trainControl(
+  summaryFunction = twoClassSummary,
+  classProbs = TRUE,
+  verboseIter = FALSE,
+  savePredictions = TRUE,
+  index = my_folds)
+```
+
+## glmnet model
+
+```{r, message=FALSE, warning=FALSE}
+# train glmnet model
+model_glmnet <- train(x = df_x, y = df_y, 
+                   method = "glmnet",
+                   metric = "ROC",
+                   tuneLength = 3,
+                   trControl = my_trainControl)
+
+# print model
+model_glmnet
+```
+
+Some remarks:
+
+*  ROC = area under curve
+*  Sens = sensitivity = true positive rate = proportion of positives that are correctly identified as such
+*  Spec = specificity = true negative rate = proportion of negatives that are correctly identified as such
+
+Another approach to find the model with the highest ROC:
+
+```{r}
+model_glmnet$results %>% 
+  as.tibble %>%  
+  arrange(desc(ROC))
+```
+
+```{r}
+# plot ROCs
+plot(model_glmnet)
+```
+
+By default, the tuning parameters `alpha` and `lamda` have three values (`tuneLength = 3` in `train` function). Let´s try 20.
+
+```{r, message=FALSE, warning=FALSE}
+# train glmnet model with tuneLength = 10
+model_glmnet <- train(x = df_x, y = df_y, 
+                   method = "glmnet",
+                   metric = "ROC",
+                   tuneLength = 20,
+                   trControl = my_trainControl)
+```
+
+```{r}
+model_glmnet$results %>% 
+  as.tibble %>%  
+  arrange(desc(ROC))
+```
+
+Tha value ~0.990 seems to be the peak we can get without additional tuning.
+
+```{r}
+# plot ROCs
+plot(model_glmnet)
+```
+
+## randomForest model
+
+```{r, message=FALSE, warning=FALSE}
+# train randomForest model
+model_randomForest <- train(x = df_x, y = df_y, 
+                            method = "ranger",
+                            metric = "ROC",
+                            importance = "permutation",
+                            tuneLength = 10,
+                            trControl = my_trainControl)
+
+# print model
+model_randomForest
+
+# plot model
+plot(model_randomForest)
+```
+
+```{r}
+model_randomForest$results %>% 
+  as.tibble %>%  
+  arrange(desc(ROC))
+```
+
+Now we can compare top 10 importance variables:
+
+```{r}
+plot(varImp(model_glmnet, scale = FALSE), top = 10, main = "glmnet")
+plot(varImp(model_randomForest, scale = FALSE), top = 10, main = "randomForest")
+```
+
+Suprisingly variables quite differs for both models. Any hint why is welcomed:)
+
+## Compare glmnet and randomForest performance
+
+```{r}
+model_list <- list(glmnet = model_glmnet, randomForest = model_randomForest)
+resamples <- resamples(model_list)
+
+# plot the comparison
+bwplot(resamples, metric = "ROC")
+# plot the comparison per each fold
+xyplot(resamples, metric = "ROC")
+```
+
+# Conclusion
+
+*  the glmnet seems to fit the data better than randomForest
+*  even without advanced tuning pretty decent level of accuracy can be achieved
+*  open points: difference between variable importance of both models
+
+Thanks for reading. Sure, there is a lot of space for improvements, tweaks. Any kind of feedback is appreciated.
