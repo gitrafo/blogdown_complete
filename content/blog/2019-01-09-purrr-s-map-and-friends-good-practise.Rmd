@@ -11,7 +11,7 @@ tags:
   - replace_na
 ---
 
-This post is my personal reference for functional programming with `purrr` package. I often find myself to search on google/stackoverflow "how to" iterate over this and that so it make sense to put it together somewhere. This post is vastly based on brilliant Jenny Bryan´s purrr [tutorial](https://jennybc.github.io/purrr-tutorial/) and focus on nested lists / list-columns.
+Hi. This post is my personal reference for functional programming with `purrr` package. I often find myself to search on google/stackoverflow "how to" iterate over this and that so it make sense to put it together somewhere. This post is vastly based on brilliant Jenny Bryan´s purrr [tutorial](https://jennybc.github.io/purrr-tutorial/) and focus on nested lists / list-columns.
 
 ```{r, warning=FALSE, message=FALSE}
 library(repurrrsive)

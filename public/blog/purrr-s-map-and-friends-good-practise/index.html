@@ -1061,7 +1061,7 @@ margin-left: -4%;
                         
                     
                     
-                    <div class="reading-time middot">16 minute read</div>
+                    <div class="reading-time middot">17 minute read</div>
                     
                     
                       <div class="tags">
@@ -1092,7 +1092,7 @@ margin-left: -4%;
     
 
 
-<p>This post is my personal reference for functional programming with <code>purrr</code> package. I often find myself to search on google/stackoverflow “how to” iterate over this and that so it make sense to put it together somewhere. This post is vastly based on brilliant Jenny Bryan´s purrr <a href="https://jennybc.github.io/purrr-tutorial/">tutorial</a> and focus on nested lists / list-columns.</p>
+<p>Hi. This post is my personal reference for functional programming with <code>purrr</code> package. I often find myself to search on google/stackoverflow “how to” iterate over this and that so it make sense to put it together somewhere. This post is vastly based on brilliant Jenny Bryan´s purrr <a href="https://jennybc.github.io/purrr-tutorial/">tutorial</a> and focus on nested lists / list-columns.</p>
 <pre class="r"><code>library(repurrrsive)
 library(tidyverse)</code></pre>
 <p>Two datasets from <code>repurrrsive</code> package to practise on:</p>
@@ -1306,7 +1306,7 @@ got_chars[[1]] %&gt;% str</code></pre>
 ## # ... with 20 more rows</code></pre>
 <p>What if I want “aliases” too?</p>
 <pre class="r"><code>got_chars %&gt;% map_df(~.[c(&quot;name&quot;, &quot;gender&quot;, &quot;aliases&quot;)])</code></pre>
-<pre><code>## Error in bind_rows_(x, .id): Argument 3 must be length 1, not 4</code></pre>
+<pre><code>## Error: Argument 3 must be length 1, not 4</code></pre>
 <p>..it doesn´t work beacause some characters have more than one aliase.</p>
 <p>But this does:</p>
 <pre class="r"><code># alias will be list-colum (&quot;nested&quot;)
@@ -1335,7 +1335,48 @@ df</code></pre>
 <p>Using <code>unnest</code> comes handy now? Nope yet..</p>
 <pre class="r"><code>df %&gt;% 
   unnest()</code></pre>
-<pre><code>## Error: Each column must either be a list of vectors or a list of data frames [aliases]</code></pre>
+<pre><code>## Error: Each column must either be a list of vectors or a list of data frames [aliases]
+## Backtrace:
+## [90m     [39mx
+## [90m  1. [39m+-base::local(...)
+## [90m  2. [39m| \-base::eval.parent(substitute(eval(quote(expr), envir)))
+## [90m  3. [39m|   \-base::eval(expr, p)
+## [90m  4. [39m|     \-base::eval(expr, p)
+## [90m  5. [39m+-base::eval(...)
+## [90m  6. [39m| \-base::eval(...)
+## [90m  7. [39m|   \-rmarkdown::render(...)
+## [90m  8. [39m|     \-knitr::knit(...)
+## [90m  9. [39m|       \-knitr:::process_file(text, output)
+## [90m 10. [39m|         +-base::withCallingHandlers(...)
+## [90m 11. [39m|         +-knitr:::process_group(group)
+## [90m 12. [39m|         \-knitr:::process_group.block(group)
+## [90m 13. [39m|           \-knitr:::call_block(x)
+## [90m 14. [39m|             \-knitr:::block_exec(params)
+## [90m 15. [39m|               +-knitr:::in_dir(...)
+## [90m 16. [39m|               \-knitr:::evaluate(...)
+## [90m 17. [39m|                 \-evaluate::evaluate(...)
+## [90m 18. [39m|                   \-evaluate:::evaluate_call(...)
+## [90m 19. [39m|                     +-evaluate:::timing_fn(...)
+## [90m 20. [39m|                     +-evaluate:::handle(...)
+## [90m 21. [39m|                     | \-base::try(f, silent = TRUE)
+## [90m 22. [39m|                     |   \-base::tryCatch(...)
+## [90m 23. [39m|                     |     \-base:::tryCatchList(expr, classes, parentenv, handlers)
+## [90m 24. [39m|                     |       \-base:::tryCatchOne(expr, names, parentenv, handlers[[1L]])
+## [90m 25. [39m|                     |         \-base:::doTryCatch(return(expr), name, parentenv, handler)
+## [90m 26. [39m|                     +-base::withCallingHandlers(...)
+## [90m 27. [39m|                     +-base::withVisible(eval(expr, envir, enclos))
+## [90m 28. [39m|                     \-base::eval(expr, envir, enclos)
+## [90m 29. [39m|                       \-base::eval(expr, envir, enclos)
+## [90m 30. [39m\-df %&gt;% unnest()
+## [90m 31. [39m  +-base::withVisible(eval(quote(`_fseq`(`_lhs`)), env, env))
+## [90m 32. [39m  \-base::eval(quote(`_fseq`(`_lhs`)), env, env)
+## [90m 33. [39m    \-base::eval(quote(`_fseq`(`_lhs`)), env, env)
+## [90m 34. [39m      \-global::`_fseq`(`_lhs`)
+## [90m 35. [39m        \-magrittr::freduce(value, `_function_list`)
+## [90m 36. [39m          +-base::withVisible(function_list[[k]](value))
+## [90m 37. [39m          \-function_list[[k]](value)
+## [90m 38. [39m            +-tidyr::unnest(.)
+## [90m 39. [39m            \-tidyr:::unnest.data.frame(.)</code></pre>
 <p>..it is because some of alias has NA (NULL) value (# NULL are the list-col equivalent of NAs):</p>
 <pre class="r"><code>df$aliases %&gt;% map_lgl(is.null)</code></pre>
 <pre><code>##  [1] FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE

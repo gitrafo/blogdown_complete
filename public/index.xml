@@ -27,7 +27,7 @@ books &amp;lt;- austen_books() %&amp;gt;% group_by(book) %&amp;gt;% group_split(
       <pubDate>Wed, 09 Jan 2019 00:00:00 +0000</pubDate>
       
       <guid>/blog/purrr-s-map-and-friends-good-practise/</guid>
-      <description>This post is my personal reference for functional programming with purrr package. I often find myself to search on google/stackoverflow “how to” iterate over this and that so it make sense to put it together somewhere. This post is vastly based on brilliant Jenny Bryan´s purrr tutorial and focus on nested lists / list-columns.
+      <description>Hi. This post is my personal reference for functional programming with purrr package. I often find myself to search on google/stackoverflow “how to” iterate over this and that so it make sense to put it together somewhere. This post is vastly based on brilliant Jenny Bryan´s purrr tutorial and focus on nested lists / list-columns.
 library(repurrrsive)library(tidyverse)Two datasets from repurrrsive package to practise on:
 got_char Game of Thrones characters datasetgh_repos Github repositories datasetStart simpleusing str and it´s max.</description>
     </item>
