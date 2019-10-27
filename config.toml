@@ -27,16 +27,9 @@ logofile = "img/logo.png"
 faviconfile = "img/logo.png"
 highlightjs = true
 progressively = true
-share = true
-# Share to googleplus, twitter, fb, linkedin by default
-# disable by setting share_on_<social network> = false
-# example: share_on_googleplus = false
 latestpostcount = 5
 email = "schonbauer.petr@gmail.com"
 linkedin = "schonbauer-petr"
 social_banner = "img/banner.png"
-usesmallsummarycard = true
 posts_navigation = true
-# issoHost = "comments.domain.tld:1234"
-# githubRepo = "githubUsername/repositoryName/tree/master"
-# small_banner_logo = false
+
