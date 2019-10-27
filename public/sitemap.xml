@@ -3,81 +3,96 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
-    <loc>https://dataplayground.netlify.com/blog/</loc>
+    <loc>/blog/</loc>
+    <lastmod>2019-04-23T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/</loc>
+    <lastmod>2019-04-23T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/blog/hypothesis-testing-the-basics/</loc>
+    <lastmod>2019-04-23T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/blog/purrr-s-map-and-friends-good-practise/</loc>
     <lastmod>2019-01-09T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>https://dataplayground.netlify.com/</loc>
-    <lastmod>2019-01-09T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://dataplayground.netlify.com/blog/purrr-s-map-and-friends-good-practise/</loc>
-    <lastmod>2019-01-09T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://dataplayground.netlify.com/blog/google-takeout-missing-photos-download-them-on-your-own/</loc>
+    <loc>/blog/google-takeout-missing-photos-download-them-on-your-own/</loc>
     <lastmod>2019-01-05T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>https://dataplayground.netlify.com/blog/google-photos-mapping/</loc>
+    <loc>/blog/google-photos-mapping/</loc>
     <lastmod>2018-12-28T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>https://dataplayground.netlify.com/blog/temperature-change-in-czech-republic-part-ii/</loc>
+    <loc>/blog/google-location-history-eda/</loc>
+    <lastmod>2018-12-27T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/blog/temperature-change-in-czech-republic-part-ii/</loc>
     <lastmod>2018-12-18T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>https://dataplayground.netlify.com/blog/temperature-change-in-czech-republic-part-i/</loc>
+    <loc>/blog/temperature-change-in-czech-republic-part-i/</loc>
     <lastmod>2018-12-15T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>https://dataplayground.netlify.com/blog/web-scraping-basics-what-is-the-current-value-of-my-car/</loc>
+    <loc>/blog/web-scraping-basics-what-is-the-current-value-of-my-car/</loc>
     <lastmod>2018-12-10T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>https://dataplayground.netlify.com/blog/image-recognition-ocr-with-tesseract-by-google/</loc>
+    <loc>/blog/image-recognition-ocr-with-tesseract-by-google/</loc>
     <lastmod>2018-11-29T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>https://dataplayground.netlify.com/blog/resting-heart-rate-trend-from-samsung-health-app-data/</loc>
+    <loc>/blog/digit-recognition-with-tensorflow/</loc>
+    <lastmod>2018-11-19T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/blog/resting-heart-rate-trend-from-samsung-health-app-data/</loc>
     <lastmod>2018-11-03T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>https://dataplayground.netlify.com/blog/how-to-model-using-caret-package-cookbook/</loc>
+    <loc>/blog/how-to-model-using-caret-package-cookbook/</loc>
     <lastmod>2017-11-10T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>https://dataplayground.netlify.com/blog/top-20-movies-based-on-imdb-scores/</loc>
+    <loc>/blog/top-20-movies-based-on-imdb-scores/</loc>
     <lastmod>2017-09-10T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>https://dataplayground.netlify.com/blog/loading-multiple-csv-xlsx-effectively/</loc>
+    <loc>/blog/loading-multiple-csv-xlsx-effectively/</loc>
     <lastmod>2017-03-08T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>https://dataplayground.netlify.com/about/</loc>
+    <loc>/about/</loc>
     <lastmod>2016-05-05T21:48:51-07:00</lastmod>
   </url>
   
   <url>
-    <loc>https://dataplayground.netlify.com/home/</loc>
+    <loc>/home/</loc>
   </url>
   
   <url>
-    <loc>https://dataplayground.netlify.com/license/</loc>
+    <loc>/license/</loc>
   </url>
   
 </urlset>
