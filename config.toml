@@ -21,11 +21,16 @@ blog = "blog/:slug/"
 dateform = "Jan 2, 2006"
 dateformfull = "Mon Jan 2 2006 15:04:05 MST"
 description = "blog"
-copyright = "Copyright © 2019 Petr Schönbauer. Powered by Hugo using the Cocoa Enhanced theme"
+copyright = "Copyright © 2019 Petr Schönbauer"
 copyrightUrl = "https://creativecommons.org/licenses/by-sa/4.0/"
 logofile = "img/logo.png"
 faviconfile = "img/logo.png"
 highlightjs = true
+# options for highlight.js (version, additional languages, and theme)
+highlightjsVersion = "9.11.0"
+highlightjsCDN = "https://cdn.bootcss.com"
+highlightjsLang = ["r", "yaml"]
+highlightjsTheme = "github"
 progressively = true
 latestpostcount = 5
 email = "schonbauer.petr@gmail.com"
