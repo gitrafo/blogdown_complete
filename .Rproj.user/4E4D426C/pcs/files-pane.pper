@@ -1,0 +1,17 @@
+{
+    "path" : "D:/GoogleDrive/Archiv/Data/R/Blog/my_blog/content/blog",
+    "sortOrder" : [
+        {
+            "ascending" : true,
+            "columnIndex" : 2
+        },
+        {
+            "ascending" : false,
+            "columnIndex" : 4
+        },
+        {
+            "ascending" : false,
+            "columnIndex" : 3
+        }
+    ]
+}

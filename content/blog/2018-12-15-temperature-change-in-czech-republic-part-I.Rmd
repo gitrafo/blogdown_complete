@@ -1,0 +1,118 @@
+---
+title: Temperature change in Czech Republic - part I
+author: Petr Schönbauer
+date: '2018-12-15'
+slug: temperature-change-in-czech-republic-part-I
+categories: []
+tags:
+  - rvest
+  - scrape
+  - RSelenium
+---
+
+There is some discussion in local news regarding decrease of precipitation and increase of temperature over last decades, however I haven´t seen single proof of these claims. The goal of this post is to get relevant data and check the trend.
+```{r, message=FALSE}
+library(tidyverse)
+library(rvest)
+library(lubridate)
+library(RSelenium)
+library(scales)
+```
+
+# No open data? - scrap it
+
+I thought our institutions are more open in providing wheater data (temperature and precipitation) so I was disappointed finding out the only option to get monthly data is to scrap it.
+```{r, message=FALSE}
+# initiate driver / client
+driver<- rsDriver()
+
+remDr <- driver[["client"]]
+```
+
+```{r, message=FALSE}
+# navigate to root page
+remDr$navigate("http://portal.chmi.cz/historicka-data/pocasi/uzemni-srazky")
+
+# initiate list 
+html_list <- list()
+
+# loop over links -> navigate -> save html into list
+for (i in seq_along(remDr$findElements("css", ".Html-link"))){
+  remDr$navigate("http://portal.chmi.cz/historicka-data/pocasi/uzemni-srazky")
+  Sys.sleep(2)
+  elem <- remDr$findElements("css", ".Html-link")
+  elem[[i]]$clickElement()
+  Sys.sleep(2)
+  
+  html_list[[i]] <- read_html(remDr$getPageSource()[[1]])
+}
+```
+
+```{r}
+# raw html - first two items from list
+html_list[1:2]
+```
+
+The list has no names. Each item represent one html for each year. In order to name the list items accordingly we have to extract the years from link elements first.
+```{r}
+remDr$navigate("http://portal.chmi.cz/historicka-data/pocasi/uzemni-srazky")
+years_names <- read_html(remDr$getPageSource()[[1]]) %>% 
+  html_nodes(".Html-link") %>% 
+  html_text()
+unique(years_names)
+```
+
+We have a character vector with relevant years. Before naming the list with these years the "2018" needs to be fixed (replaced).
+```{r}
+(years_names <- str_replace(years_names, "^.*operativní.*$", "2018"))
+```
+
+We´re done with scraping so the server and client can be stopped.
+```{r, message = FALSE}
+# close chrome
+remDr$close()
+#stop server
+driver$server$stop()
+```
+
+Extracting the table with data from each html.
+```{r}
+tmp <- html_list %>% 
+  set_names(years_names) %>% 
+  #extract table from each html
+  map(html_table, fill = TRUE) %>% 
+  #extract second element (data.frame)
+  map(~.[[2]])
+```
+
+```{r}
+tmp[1] %>% str
+```
+
+# Tidy the data
+```{r}
+# create vector of column names
+cols <- c("region", "parameter", "Jan", "Feb", "Mar", "Apr", "May", 
+          "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "year_total")
+
+tmp %>% 
+  map(set_names, cols) %>% 
+  map(as_tibble) %>% 
+  map(~slice(., 2:nrow(.))) %>% 
+  bind_rows(.id = "year") %>% 
+  distinct(year, region, .keep_all = TRUE) %>% 
+  
+  filter(parameter == "S") %>% 
+  select(-year_total, -parameter) %>% 
+  
+  gather(key = "month", value = "precipitation", -year, -region) %>% 
+  
+  mutate(precipitation = precipitation %>% as.numeric()) %>% 
+  mutate(year_month = paste(month, year, sep = "-") %>% parse_date_time("%b-%Y", tz = "CET")) %>% 
+  select(year_month, year, month, region, precipitation) -> df_prep_raw
+
+df_prep_raw
+saveRDS(df_prep_raw, "../../static/data/chmu_srazky.rds")
+```
+
+Now we´re ready to answer some questions with these data - see [part II](https://dataplayground.netlify.com/blog/temperature-change-in-czech-republic-part-ii/) of this post.

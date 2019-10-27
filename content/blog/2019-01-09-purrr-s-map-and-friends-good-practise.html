@@ -1,0 +1,552 @@
+---
+title: Purrr´s map and friends - good practise
+author: Petr Schönbauer
+date: '2019-01-09'
+slug: purrr-s-map-and-friends-good-practise
+categories: []
+tags:
+  - R
+  - purrr
+  - map
+  - replace_na
+---
+
+
+
+<p>This post is my personal reference for functional programming with <code>purrr</code> package. I often find myself to search on google/stackoverflow “how to” iterate over this and that so it make sense to put it together somewhere. This post is vastly based on brilliant Jenny Bryan´s purrr <a href="https://jennybc.github.io/purrr-tutorial/">tutorial</a> and focus on nested lists / list-columns.</p>
+<pre class="r"><code>library(repurrrsive)
+library(tidyverse)</code></pre>
+<p>Two datasets from <code>repurrrsive</code> package to practise on:</p>
+<ul>
+<li><code>got_char</code> Game of Thrones characters dataset</li>
+<li><code>gh_repos</code> Github repositories dataset</li>
+</ul>
+<div id="start-simple" class="section level1">
+<h1>Start simple</h1>
+<ul>
+<li>using <code>str</code> and it´s <code>max.level</code> and <code>list.len</code> argument</li>
+<li>using <code>View()</code> function in RStudio</li>
+</ul>
+<pre class="r"><code># is it even list?
+got_chars %&gt;% class</code></pre>
+<pre><code>## [1] &quot;list&quot;</code></pre>
+<pre class="r"><code># list.len limits each nesting level to x items (by default list.len = 99)
+# in case of more nested lists use max.level argument, by default all levels are shown
+got_chars %&gt;% str(list.len = 3)</code></pre>
+<pre><code>## List of 30
+##  $ :List of 18
+##   ..$ url        : chr &quot;https://www.anapioficeandfire.com/api/characters/1022&quot;
+##   ..$ id         : int 1022
+##   ..$ name       : chr &quot;Theon Greyjoy&quot;
+##   .. [list output truncated]
+##  $ :List of 18
+##   ..$ url        : chr &quot;https://www.anapioficeandfire.com/api/characters/1052&quot;
+##   ..$ id         : int 1052
+##   ..$ name       : chr &quot;Tyrion Lannister&quot;
+##   .. [list output truncated]
+##  $ :List of 18
+##   ..$ url        : chr &quot;https://www.anapioficeandfire.com/api/characters/1074&quot;
+##   ..$ id         : int 1074
+##   ..$ name       : chr &quot;Victarion Greyjoy&quot;
+##   .. [list output truncated]
+##   [list output truncated]</code></pre>
+<p>So <code>got_char</code> is a list of 30 lists, each with 18 items.</p>
+<p>We can get this information this way too:</p>
+<pre class="r"><code># number of items (lists in this case) at level 0 
+got_chars %&gt;% length()</code></pre>
+<pre><code>## [1] 30</code></pre>
+<pre class="r"><code># number of items at level 1
+got_chars %&gt;% map_int(length)</code></pre>
+<pre><code>##  [1] 18 18 18 18 18 18 18 18 18 18 18 18 18 18 18 18 18 18 18 18 18 18 18
+## [24] 18 18 18 18 18 18 18</code></pre>
+<p>Or using <code>View()</code> function in RStudio. I prefer it.</p>
+<p><img src="/img/purrr_0.png" style="width:80.0%" /></p>
+<p>..down to 30 lists</p>
+<p>Now I want all items just from first list:</p>
+<pre class="r"><code>got_chars[1] %&gt;% str</code></pre>
+<pre><code>## List of 1
+##  $ :List of 18
+##   ..$ url        : chr &quot;https://www.anapioficeandfire.com/api/characters/1022&quot;
+##   ..$ id         : int 1022
+##   ..$ name       : chr &quot;Theon Greyjoy&quot;
+##   ..$ gender     : chr &quot;Male&quot;
+##   ..$ culture    : chr &quot;Ironborn&quot;
+##   ..$ born       : chr &quot;In 278 AC or 279 AC, at Pyke&quot;
+##   ..$ died       : chr &quot;&quot;
+##   ..$ alive      : logi TRUE
+##   ..$ titles     : chr [1:3] &quot;Prince of Winterfell&quot; &quot;Captain of Sea Bitch&quot; &quot;Lord of the Iron Islands (by law of the green lands)&quot;
+##   ..$ aliases    : chr [1:4] &quot;Prince of Fools&quot; &quot;Theon Turncloak&quot; &quot;Reek&quot; &quot;Theon Kinslayer&quot;
+##   ..$ father     : chr &quot;&quot;
+##   ..$ mother     : chr &quot;&quot;
+##   ..$ spouse     : chr &quot;&quot;
+##   ..$ allegiances: chr &quot;House Greyjoy of Pyke&quot;
+##   ..$ books      : chr [1:3] &quot;A Game of Thrones&quot; &quot;A Storm of Swords&quot; &quot;A Feast for Crows&quot;
+##   ..$ povBooks   : chr [1:2] &quot;A Clash of Kings&quot; &quot;A Dance with Dragons&quot;
+##   ..$ tvSeries   : chr [1:6] &quot;Season 1&quot; &quot;Season 2&quot; &quot;Season 3&quot; &quot;Season 4&quot; ...
+##   ..$ playedBy   : chr &quot;Alfie Allen&quot;</code></pre>
+<p>Here is good to realize: </br>
+a) that single <code>[</code> returns always list </br>
+b) even if 5th element is pulled, the index of outcome will be 1, not 5.</p>
+<pre class="r"><code>got_chars[5]</code></pre>
+<pre><code>## [[1]]
+## [[1]]$url
+## [1] &quot;https://www.anapioficeandfire.com/api/characters/1166&quot;
+## 
+## [[1]]$id
+## [1] 1166
+## 
+## [[1]]$name
+## [1] &quot;Areo Hotah&quot;
+## 
+## [[1]]$gender
+## [1] &quot;Male&quot;
+## 
+## [[1]]$culture
+## [1] &quot;Norvoshi&quot;
+## 
+## [[1]]$born
+## [1] &quot;In 257 AC or before, at Norvos&quot;
+## 
+## [[1]]$died
+## [1] &quot;&quot;
+## 
+## [[1]]$alive
+## [1] TRUE
+## 
+## [[1]]$titles
+## [1] &quot;Captain of the Guard at Sunspear&quot;
+## 
+## [[1]]$aliases
+## [1] &quot;&quot;
+## 
+## [[1]]$father
+## [1] &quot;&quot;
+## 
+## [[1]]$mother
+## [1] &quot;&quot;
+## 
+## [[1]]$spouse
+## [1] &quot;&quot;
+## 
+## [[1]]$allegiances
+## [1] &quot;House Nymeros Martell of Sunspear&quot;
+## 
+## [[1]]$books
+## [1] &quot;A Game of Thrones&quot; &quot;A Clash of Kings&quot;  &quot;A Storm of Swords&quot;
+## 
+## [[1]]$povBooks
+## [1] &quot;A Feast for Crows&quot;    &quot;A Dance with Dragons&quot;
+## 
+## [[1]]$tvSeries
+## [1] &quot;Season 5&quot; &quot;Season 6&quot;
+## 
+## [[1]]$playedBy
+## [1] &quot;DeObia Oparei&quot;</code></pre>
+<p>Now, I want all content of items just from first list:</p>
+<pre class="r"><code># outcome is a list again but with one level only
+got_chars[[1]] %&gt;% str</code></pre>
+<pre><code>## List of 18
+##  $ url        : chr &quot;https://www.anapioficeandfire.com/api/characters/1022&quot;
+##  $ id         : int 1022
+##  $ name       : chr &quot;Theon Greyjoy&quot;
+##  $ gender     : chr &quot;Male&quot;
+##  $ culture    : chr &quot;Ironborn&quot;
+##  $ born       : chr &quot;In 278 AC or 279 AC, at Pyke&quot;
+##  $ died       : chr &quot;&quot;
+##  $ alive      : logi TRUE
+##  $ titles     : chr [1:3] &quot;Prince of Winterfell&quot; &quot;Captain of Sea Bitch&quot; &quot;Lord of the Iron Islands (by law of the green lands)&quot;
+##  $ aliases    : chr [1:4] &quot;Prince of Fools&quot; &quot;Theon Turncloak&quot; &quot;Reek&quot; &quot;Theon Kinslayer&quot;
+##  $ father     : chr &quot;&quot;
+##  $ mother     : chr &quot;&quot;
+##  $ spouse     : chr &quot;&quot;
+##  $ allegiances: chr &quot;House Greyjoy of Pyke&quot;
+##  $ books      : chr [1:3] &quot;A Game of Thrones&quot; &quot;A Storm of Swords&quot; &quot;A Feast for Crows&quot;
+##  $ povBooks   : chr [1:2] &quot;A Clash of Kings&quot; &quot;A Dance with Dragons&quot;
+##  $ tvSeries   : chr [1:6] &quot;Season 1&quot; &quot;Season 2&quot; &quot;Season 3&quot; &quot;Season 4&quot; ...
+##  $ playedBy   : chr &quot;Alfie Allen&quot;</code></pre>
+<p>Good to realize:</p>
+<pre class="r"><code>got_chars[1] %&gt;% names</code></pre>
+<pre><code>## NULL</code></pre>
+<p>vs.</p>
+<pre class="r"><code>got_chars[[1]] %&gt;% names</code></pre>
+<pre><code>##  [1] &quot;url&quot;         &quot;id&quot;          &quot;name&quot;        &quot;gender&quot;      &quot;culture&quot;    
+##  [6] &quot;born&quot;        &quot;died&quot;        &quot;alive&quot;       &quot;titles&quot;      &quot;aliases&quot;    
+## [11] &quot;father&quot;      &quot;mother&quot;      &quot;spouse&quot;      &quot;allegiances&quot; &quot;books&quot;      
+## [16] &quot;povBooks&quot;    &quot;tvSeries&quot;    &quot;playedBy&quot;</code></pre>
+<p>Extract <code>name</code> from each list:</p>
+<pre class="r"><code>got_chars %&gt;% map_chr(~.$name)</code></pre>
+<pre><code>##  [1] &quot;Theon Greyjoy&quot;      &quot;Tyrion Lannister&quot;   &quot;Victarion Greyjoy&quot; 
+##  [4] &quot;Will&quot;               &quot;Areo Hotah&quot;         &quot;Chett&quot;             
+##  [7] &quot;Cressen&quot;            &quot;Arianne Martell&quot;    &quot;Daenerys Targaryen&quot;
+## [10] &quot;Davos Seaworth&quot;     &quot;Arya Stark&quot;         &quot;Arys Oakheart&quot;     
+## [13] &quot;Asha Greyjoy&quot;       &quot;Barristan Selmy&quot;    &quot;Varamyr&quot;           
+## [16] &quot;Brandon Stark&quot;      &quot;Brienne of Tarth&quot;   &quot;Catelyn Stark&quot;     
+## [19] &quot;Cersei Lannister&quot;   &quot;Eddard Stark&quot;       &quot;Jaime Lannister&quot;   
+## [22] &quot;Jon Connington&quot;     &quot;Jon Snow&quot;           &quot;Aeron Greyjoy&quot;     
+## [25] &quot;Kevan Lannister&quot;    &quot;Melisandre&quot;         &quot;Merrett Frey&quot;      
+## [28] &quot;Quentyn Martell&quot;    &quot;Samwell Tarly&quot;      &quot;Sansa Stark&quot;</code></pre>
+<p>or</p>
+<pre class="r"><code>got_chars %&gt;% map_chr(~.x$name)</code></pre>
+<pre><code>##  [1] &quot;Theon Greyjoy&quot;      &quot;Tyrion Lannister&quot;   &quot;Victarion Greyjoy&quot; 
+##  [4] &quot;Will&quot;               &quot;Areo Hotah&quot;         &quot;Chett&quot;             
+##  [7] &quot;Cressen&quot;            &quot;Arianne Martell&quot;    &quot;Daenerys Targaryen&quot;
+## [10] &quot;Davos Seaworth&quot;     &quot;Arya Stark&quot;         &quot;Arys Oakheart&quot;     
+## [13] &quot;Asha Greyjoy&quot;       &quot;Barristan Selmy&quot;    &quot;Varamyr&quot;           
+## [16] &quot;Brandon Stark&quot;      &quot;Brienne of Tarth&quot;   &quot;Catelyn Stark&quot;     
+## [19] &quot;Cersei Lannister&quot;   &quot;Eddard Stark&quot;       &quot;Jaime Lannister&quot;   
+## [22] &quot;Jon Connington&quot;     &quot;Jon Snow&quot;           &quot;Aeron Greyjoy&quot;     
+## [25] &quot;Kevan Lannister&quot;    &quot;Melisandre&quot;         &quot;Merrett Frey&quot;      
+## [28] &quot;Quentyn Martell&quot;    &quot;Samwell Tarly&quot;      &quot;Sansa Stark&quot;</code></pre>
+<p>or</p>
+<pre class="r"><code>got_chars %&gt;% map_chr(&quot;name&quot;)</code></pre>
+<pre><code>##  [1] &quot;Theon Greyjoy&quot;      &quot;Tyrion Lannister&quot;   &quot;Victarion Greyjoy&quot; 
+##  [4] &quot;Will&quot;               &quot;Areo Hotah&quot;         &quot;Chett&quot;             
+##  [7] &quot;Cressen&quot;            &quot;Arianne Martell&quot;    &quot;Daenerys Targaryen&quot;
+## [10] &quot;Davos Seaworth&quot;     &quot;Arya Stark&quot;         &quot;Arys Oakheart&quot;     
+## [13] &quot;Asha Greyjoy&quot;       &quot;Barristan Selmy&quot;    &quot;Varamyr&quot;           
+## [16] &quot;Brandon Stark&quot;      &quot;Brienne of Tarth&quot;   &quot;Catelyn Stark&quot;     
+## [19] &quot;Cersei Lannister&quot;   &quot;Eddard Stark&quot;       &quot;Jaime Lannister&quot;   
+## [22] &quot;Jon Connington&quot;     &quot;Jon Snow&quot;           &quot;Aeron Greyjoy&quot;     
+## [25] &quot;Kevan Lannister&quot;    &quot;Melisandre&quot;         &quot;Merrett Frey&quot;      
+## [28] &quot;Quentyn Martell&quot;    &quot;Samwell Tarly&quot;      &quot;Sansa Stark&quot;</code></pre>
+<p>or straight to tibble:</p>
+<pre class="r"><code>got_chars %&gt;% map_df(~.[c(&quot;name&quot;, &quot;gender&quot;)])</code></pre>
+<pre><code>## # A tibble: 30 x 2
+##    name               gender
+##    &lt;chr&gt;              &lt;chr&gt; 
+##  1 Theon Greyjoy      Male  
+##  2 Tyrion Lannister   Male  
+##  3 Victarion Greyjoy  Male  
+##  4 Will               Male  
+##  5 Areo Hotah         Male  
+##  6 Chett              Male  
+##  7 Cressen            Male  
+##  8 Arianne Martell    Female
+##  9 Daenerys Targaryen Female
+## 10 Davos Seaworth     Male  
+## # ... with 20 more rows</code></pre>
+<p>What if I want “aliases” too?</p>
+<pre class="r"><code>got_chars %&gt;% map_df(~.[c(&quot;name&quot;, &quot;gender&quot;, &quot;aliases&quot;)])</code></pre>
+<pre><code>## Error in bind_rows_(x, .id): Argument 3 must be length 1, not 4</code></pre>
+<p>..it doesn´t work beacause some characters have more than one aliase.</p>
+<p>But this does:</p>
+<pre class="r"><code># alias will be list-colum (&quot;nested&quot;)
+df &lt;- tibble(
+  name = got_chars %&gt;% map_chr(&quot;name&quot;),
+  id = got_chars %&gt;% map_int(&quot;id&quot;),
+  gender = got_chars %&gt;% map_chr(&quot;gender&quot;),
+  aliases = got_chars %&gt;% map(&quot;aliases&quot;)
+)
+df</code></pre>
+<pre><code>## # A tibble: 30 x 4
+##    name                  id gender aliases   
+##    &lt;chr&gt;              &lt;int&gt; &lt;chr&gt;  &lt;list&gt;    
+##  1 Theon Greyjoy       1022 Male   &lt;chr [4]&gt; 
+##  2 Tyrion Lannister    1052 Male   &lt;chr [11]&gt;
+##  3 Victarion Greyjoy   1074 Male   &lt;chr [1]&gt; 
+##  4 Will                1109 Male   &lt;chr [1]&gt; 
+##  5 Areo Hotah          1166 Male   &lt;chr [1]&gt; 
+##  6 Chett               1267 Male   &lt;chr [1]&gt; 
+##  7 Cressen             1295 Male   &lt;chr [1]&gt; 
+##  8 Arianne Martell      130 Female &lt;chr [1]&gt; 
+##  9 Daenerys Targaryen  1303 Female &lt;chr [11]&gt;
+## 10 Davos Seaworth      1319 Male   &lt;chr [5]&gt; 
+## # ... with 20 more rows</code></pre>
+<p>..it works because alias is bind as list-colum (“nested”)</p>
+<p>Using <code>unnest</code> comes handy now? Nope yet..</p>
+<pre class="r"><code>df %&gt;% 
+  unnest()</code></pre>
+<pre><code>## Error: Each column must either be a list of vectors or a list of data frames [aliases]</code></pre>
+<p>..it is because some of alias has NA (NULL) value (# NULL are the list-col equivalent of NAs):</p>
+<pre class="r"><code>df$aliases %&gt;% map_lgl(is.null)</code></pre>
+<pre><code>##  [1] FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE
+## [12] FALSE FALSE FALSE FALSE FALSE FALSE FALSE  TRUE FALSE FALSE FALSE
+## [23] FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE</code></pre>
+<p>We can use <code>replace_na</code> to replace NULL to "" or whatever and <code>unnest</code> afterwards.</p>
+<pre class="r"><code>df %&gt;% 
+  replace_na(list(aliases=list(&quot;&quot;))) %&gt;% 
+  unnest()</code></pre>
+<pre><code>## # A tibble: 115 x 4
+##    name                id gender aliases           
+##    &lt;chr&gt;            &lt;int&gt; &lt;chr&gt;  &lt;chr&gt;             
+##  1 Theon Greyjoy     1022 Male   Prince of Fools   
+##  2 Theon Greyjoy     1022 Male   Theon Turncloak   
+##  3 Theon Greyjoy     1022 Male   Reek              
+##  4 Theon Greyjoy     1022 Male   Theon Kinslayer   
+##  5 Tyrion Lannister  1052 Male   The Imp           
+##  6 Tyrion Lannister  1052 Male   Halfman           
+##  7 Tyrion Lannister  1052 Male   The boyman        
+##  8 Tyrion Lannister  1052 Male   Giant of Lannister
+##  9 Tyrion Lannister  1052 Male   Lord Tywin&#39;s Doom 
+## 10 Tyrion Lannister  1052 Male   Lord Tywin&#39;s Bane 
+## # ... with 105 more rows</code></pre>
+</div>
+<div id="to-tibble-asap" class="section level1">
+<h1>To tibble asap</h1>
+<p>..extracting using mutate+map+unnest </br>
+..allows iterative approach - more decomposed code and faster debugging</p>
+<div id="a-directly-to-tibble" class="section level3">
+<h3>a) directly to tibble</h3>
+<pre class="r"><code>tibble(name = got_chars %&gt;% map_chr(~.$name)) %&gt;% 
+  mutate(id =  got_chars %&gt;% map_int(~.$id)) %&gt;% 
+  mutate(aliases =  got_chars %&gt;% map(~.$aliases)) %&gt;%
+  replace_na(list(aliases = list(&quot;&quot;))) %&gt;% 
+  unnest(aliases)</code></pre>
+<pre><code>## # A tibble: 115 x 3
+##    name                id aliases           
+##    &lt;chr&gt;            &lt;int&gt; &lt;chr&gt;             
+##  1 Theon Greyjoy     1022 Prince of Fools   
+##  2 Theon Greyjoy     1022 Theon Turncloak   
+##  3 Theon Greyjoy     1022 Reek              
+##  4 Theon Greyjoy     1022 Theon Kinslayer   
+##  5 Tyrion Lannister  1052 The Imp           
+##  6 Tyrion Lannister  1052 Halfman           
+##  7 Tyrion Lannister  1052 The boyman        
+##  8 Tyrion Lannister  1052 Giant of Lannister
+##  9 Tyrion Lannister  1052 Lord Tywin&#39;s Doom 
+## 10 Tyrion Lannister  1052 Lord Tywin&#39;s Bane 
+## # ... with 105 more rows</code></pre>
+</div>
+<div id="b-set_names-and-enframe-the-list-in-fact-it-is-directly-to-tibble-too" class="section level3">
+<h3>b) <code>set_names</code> and <code>enframe</code> the list (in fact it is directly to tibble too)</h3>
+<pre class="r"><code>got_chars %&gt;% 
+  set_names(., got_chars %&gt;% map_chr(~.$name)) %&gt;% 
+  enframe(name = &quot;name&quot;, value = &quot;data&quot;) %&gt;% 
+  mutate(id = data %&gt;% map_int(~.$id)) %&gt;% 
+  # or
+  mutate(id_2 = data %&gt;% map(~.$id) %&gt;% unlist) %&gt;% 
+  mutate(aliases =  data %&gt;% map(~.$aliases)) %&gt;%
+  replace_na(list(aliases = list(&quot;&quot;))) %&gt;% 
+  unnest(aliases, .drop = FALSE)</code></pre>
+<pre><code>## # A tibble: 115 x 5
+##    name             data           id  id_2 aliases           
+##    &lt;chr&gt;            &lt;list&gt;      &lt;int&gt; &lt;int&gt; &lt;chr&gt;             
+##  1 Theon Greyjoy    &lt;list [18]&gt;  1022  1022 Prince of Fools   
+##  2 Theon Greyjoy    &lt;list [18]&gt;  1022  1022 Theon Turncloak   
+##  3 Theon Greyjoy    &lt;list [18]&gt;  1022  1022 Reek              
+##  4 Theon Greyjoy    &lt;list [18]&gt;  1022  1022 Theon Kinslayer   
+##  5 Tyrion Lannister &lt;list [18]&gt;  1052  1052 The Imp           
+##  6 Tyrion Lannister &lt;list [18]&gt;  1052  1052 Halfman           
+##  7 Tyrion Lannister &lt;list [18]&gt;  1052  1052 The boyman        
+##  8 Tyrion Lannister &lt;list [18]&gt;  1052  1052 Giant of Lannister
+##  9 Tyrion Lannister &lt;list [18]&gt;  1052  1052 Lord Tywin&#39;s Doom 
+## 10 Tyrion Lannister &lt;list [18]&gt;  1052  1052 Lord Tywin&#39;s Bane 
+## # ... with 105 more rows</code></pre>
+</div>
+</div>
+<div id="more-nested-stuff" class="section level1">
+<h1>More nested stuff</h1>
+<pre class="r"><code># explore gh_repos list
+gh_repos[[1]] %&gt;% str(max.level = 4, list.len = 4)</code></pre>
+<pre><code>## List of 30
+##  $ :List of 68
+##   ..$ id               : int 61160198
+##   ..$ name             : chr &quot;after&quot;
+##   ..$ full_name        : chr &quot;gaborcsardi/after&quot;
+##   ..$ owner            :List of 17
+##   .. ..$ login              : chr &quot;gaborcsardi&quot;
+##   .. ..$ id                 : int 660288
+##   .. ..$ avatar_url         : chr &quot;https://avatars.githubusercontent.com/u/660288?v=3&quot;
+##   .. ..$ gravatar_id        : chr &quot;&quot;
+##   .. .. [list output truncated]
+##   .. [list output truncated]
+##  $ :List of 68
+##   ..$ id               : int 40500181
+##   ..$ name             : chr &quot;argufy&quot;
+##   ..$ full_name        : chr &quot;gaborcsardi/argufy&quot;
+##   ..$ owner            :List of 17
+##   .. ..$ login              : chr &quot;gaborcsardi&quot;
+##   .. ..$ id                 : int 660288
+##   .. ..$ avatar_url         : chr &quot;https://avatars.githubusercontent.com/u/660288?v=3&quot;
+##   .. ..$ gravatar_id        : chr &quot;&quot;
+##   .. .. [list output truncated]
+##   .. [list output truncated]
+##  $ :List of 68
+##   ..$ id               : int 36442442
+##   ..$ name             : chr &quot;ask&quot;
+##   ..$ full_name        : chr &quot;gaborcsardi/ask&quot;
+##   ..$ owner            :List of 17
+##   .. ..$ login              : chr &quot;gaborcsardi&quot;
+##   .. ..$ id                 : int 660288
+##   .. ..$ avatar_url         : chr &quot;https://avatars.githubusercontent.com/u/660288?v=3&quot;
+##   .. ..$ gravatar_id        : chr &quot;&quot;
+##   .. .. [list output truncated]
+##   .. [list output truncated]
+##  $ :List of 68
+##   ..$ id               : int 34924886
+##   ..$ name             : chr &quot;baseimports&quot;
+##   ..$ full_name        : chr &quot;gaborcsardi/baseimports&quot;
+##   ..$ owner            :List of 17
+##   .. ..$ login              : chr &quot;gaborcsardi&quot;
+##   .. ..$ id                 : int 660288
+##   .. ..$ avatar_url         : chr &quot;https://avatars.githubusercontent.com/u/660288?v=3&quot;
+##   .. ..$ gravatar_id        : chr &quot;&quot;
+##   .. .. [list output truncated]
+##   .. [list output truncated]
+##   [list output truncated]</code></pre>
+<p>or again using <code>View()</code> function in RStudio. I prefer it because you can easily miss something when using <code>str</code> (yes, it sounds strange, but that is my experiance with complicated lists). There are two major advantages:</p>
+<ol style="list-style-type: decimal">
+<li>Using <code>View</code> you can explore single element down to latest element without extending the list with other elements (unlike <code>str</code>) </br></li>
+<li>Using <code>View</code> you can get direct address to now-matter-how-much-scary-nested element (can be done with <code>str</code> too actually, but more complicated way)</li>
+</ol>
+<p><img src="/img/purrr_2.png" style="width:100.0%" /></p>
+<p>or</p>
+<pre class="r"><code># number of item at level 0
+gh_repos %&gt;% length()</code></pre>
+<pre><code>## [1] 6</code></pre>
+<pre class="r"><code># number of item at level 1
+gh_repos %&gt;% map_int(length)</code></pre>
+<pre><code>## [1] 30 30 30 26 30 30</code></pre>
+<pre class="r"><code># number of item at level 2
+gh_repos %&gt;% map(map_int, length)</code></pre>
+<pre><code>## [[1]]
+##  [1] 68 68 68 68 68 68 68 68 68 68 68 68 68 68 68 68 68 68 68 68 68 68 68
+## [24] 68 68 68 68 68 68 68
+## 
+## [[2]]
+##  [1] 68 68 68 68 68 68 68 68 68 68 68 68 68 68 68 68 68 68 68 68 68 68 68
+## [24] 68 68 68 68 68 68 68
+## 
+## [[3]]
+##  [1] 68 68 68 68 68 68 68 68 68 68 68 68 68 68 68 68 68 68 68 68 68 68 68
+## [24] 68 68 68 68 68 68 68
+## 
+## [[4]]
+##  [1] 68 68 68 68 68 68 68 68 68 68 68 68 68 68 68 68 68 68 68 68 68 68 68
+## [24] 68 68 68
+## 
+## [[5]]
+##  [1] 68 68 68 68 68 68 68 68 68 68 68 68 68 68 68 68 68 68 68 68 68 68 68
+## [24] 68 68 68 68 68 68 68
+## 
+## [[6]]
+##  [1] 68 68 68 68 68 68 68 68 68 68 68 68 68 68 68 68 68 68 68 68 68 68 68
+## [24] 68 68 68 68 68 68 68</code></pre>
+<p>..more about last one later </br>
+..<code>gh_repos</code> is list of 6 lists, each with 30 (except one with 26 lists), each with 68 items</p>
+<pre class="r"><code># exctract name
+gh_repos %&gt;% map(~.[[1]][[&quot;name&quot;]])</code></pre>
+<pre><code>## [[1]]
+## [1] &quot;after&quot;
+## 
+## [[2]]
+## [1] &quot;2013-11_sfu&quot;
+## 
+## [[3]]
+## [1] &quot;advdatasci&quot;
+## 
+## [[4]]
+## [1] &quot;2016-14&quot;
+## 
+## [[5]]
+## [1] &quot;ampolcourse&quot;
+## 
+## [[6]]
+## [1] &quot;aqi_pdf&quot;</code></pre>
+<p>..but it is NOT correct. Why? Because this is just item “name” from each first sub-list. We need somehow iterate over index map_chr(~.[[i]][[“name”]])</p>
+<pre class="r"><code>gh_repos %&gt;% map(function(x){map_chr(x, ~.$name)
+  }) %&gt;% 
+  str()</code></pre>
+<pre><code>## List of 6
+##  $ : chr [1:30] &quot;after&quot; &quot;argufy&quot; &quot;ask&quot; &quot;baseimports&quot; ...
+##  $ : chr [1:30] &quot;2013-11_sfu&quot; &quot;2014-01-27-miami&quot; &quot;2014-05-12-ubc&quot; &quot;2015-02-23_bryan-fields-talk&quot; ...
+##  $ : chr [1:30] &quot;advdatasci&quot; &quot;advdatasci-swirl&quot; &quot;advdatasci16&quot; &quot;advdatasci_swirl&quot; ...
+##  $ : chr [1:26] &quot;2016-14&quot; &quot;choroplethrCaCensusTract&quot; &quot;choroplethrUTCensusTract&quot; &quot;CountyHealthApp&quot; ...
+##  $ : chr [1:30] &quot;ampolcourse&quot; &quot;apsa-leeper.bst&quot; &quot;arco&quot; &quot;astrojs&quot; ...
+##  $ : chr [1:30] &quot;aqi_pdf&quot; &quot;catan_card_game&quot; &quot;colourlovers_patterns&quot; &quot;convertagd&quot; ...</code></pre>
+<p>That´s it! </br>
+or</p>
+<pre class="r"><code>gh_repos %&gt;% map(map_chr, ~.$name) %&gt;% 
+  str()</code></pre>
+<pre><code>## List of 6
+##  $ : chr [1:30] &quot;after&quot; &quot;argufy&quot; &quot;ask&quot; &quot;baseimports&quot; ...
+##  $ : chr [1:30] &quot;2013-11_sfu&quot; &quot;2014-01-27-miami&quot; &quot;2014-05-12-ubc&quot; &quot;2015-02-23_bryan-fields-talk&quot; ...
+##  $ : chr [1:30] &quot;advdatasci&quot; &quot;advdatasci-swirl&quot; &quot;advdatasci16&quot; &quot;advdatasci_swirl&quot; ...
+##  $ : chr [1:26] &quot;2016-14&quot; &quot;choroplethrCaCensusTract&quot; &quot;choroplethrUTCensusTract&quot; &quot;CountyHealthApp&quot; ...
+##  $ : chr [1:30] &quot;ampolcourse&quot; &quot;apsa-leeper.bst&quot; &quot;arco&quot; &quot;astrojs&quot; ...
+##  $ : chr [1:30] &quot;aqi_pdf&quot; &quot;catan_card_game&quot; &quot;colourlovers_patterns&quot; &quot;convertagd&quot; ...</code></pre>
+<p>That´s it again. </br>
+or</p>
+<pre class="r"><code>gh_repos %&gt;% modify_depth(2, ~.$name) %&gt;% 
+  str(list.len = 4)</code></pre>
+<pre><code>## List of 6
+##  $ :List of 30
+##   ..$ : chr &quot;after&quot;
+##   ..$ : chr &quot;argufy&quot;
+##   ..$ : chr &quot;ask&quot;
+##   ..$ : chr &quot;baseimports&quot;
+##   .. [list output truncated]
+##  $ :List of 30
+##   ..$ : chr &quot;2013-11_sfu&quot;
+##   ..$ : chr &quot;2014-01-27-miami&quot;
+##   ..$ : chr &quot;2014-05-12-ubc&quot;
+##   ..$ : chr &quot;2015-02-23_bryan-fields-talk&quot;
+##   .. [list output truncated]
+##  $ :List of 30
+##   ..$ : chr &quot;advdatasci&quot;
+##   ..$ : chr &quot;advdatasci-swirl&quot;
+##   ..$ : chr &quot;advdatasci16&quot;
+##   ..$ : chr &quot;advdatasci_swirl&quot;
+##   .. [list output truncated]
+##  $ :List of 26
+##   ..$ : chr &quot;2016-14&quot;
+##   ..$ : chr &quot;choroplethrCaCensusTract&quot;
+##   ..$ : chr &quot;choroplethrUTCensusTract&quot;
+##   ..$ : chr &quot;CountyHealthApp&quot;
+##   .. [list output truncated]
+##   [list output truncated]</code></pre>
+<pre class="r"><code># modify_depth is a little bit difficult to abstract and the disadvantage is that it return list only, there isn´t modify_depth_char equivalent</code></pre>
+<p>Now, we will extract <code>owner</code> list, more specifically <code>login</code> variable. We can notice it is duplicated in each list = useful to set as name. The index = 1 is OK as we will extract just one (first) item from list as all others are the same.</p>
+<pre class="r"><code># extract login
+gh_repos %&gt;% map_chr(~.[[1]][[&quot;owner&quot;]][[&quot;login&quot;]])</code></pre>
+<pre><code>## [1] &quot;gaborcsardi&quot; &quot;jennybc&quot;     &quot;jtleek&quot;      &quot;juliasilge&quot;  &quot;leeper&quot;     
+## [6] &quot;masalmon&quot;</code></pre>
+<p>or</p>
+<pre class="r"><code># extract login
+gh_repos %&gt;% map_chr(~.[[1]]$owner$login)</code></pre>
+<pre><code>## [1] &quot;gaborcsardi&quot; &quot;jennybc&quot;     &quot;jtleek&quot;      &quot;juliasilge&quot;  &quot;leeper&quot;     
+## [6] &quot;masalmon&quot;</code></pre>
+<p>or</p>
+<pre class="r"><code>gh_repos %&gt;% map_chr(c(1,4,1))</code></pre>
+<pre><code>## [1] &quot;gaborcsardi&quot; &quot;jennybc&quot;     &quot;jtleek&quot;      &quot;juliasilge&quot;  &quot;leeper&quot;     
+## [6] &quot;masalmon&quot;</code></pre>
+</div>
+<div id="the-best-practise---put-it-all-together" class="section level1">
+<h1>The best practise - put it all together</h1>
+<pre class="r"><code># explore the list first with View() or str, understand the data
+# put list into tibble using enframe (list must have names) or set_names first = get the address to logical element for your names
+gh_repos %&gt;%
+  set_names(., map_chr(gh_repos, ~.[[1]]$owner$login)) %&gt;% 
+  enframe(name = &quot;name&quot;, value = &quot;data&quot;) -&gt; t 
+t</code></pre>
+<pre><code>## # A tibble: 6 x 2
+##   name        data       
+##   &lt;chr&gt;       &lt;list&gt;     
+## 1 gaborcsardi &lt;list [30]&gt;
+## 2 jennybc     &lt;list [30]&gt;
+## 3 jtleek      &lt;list [30]&gt;
+## 4 juliasilge  &lt;list [26]&gt;
+## 5 leeper      &lt;list [30]&gt;
+## 6 masalmon    &lt;list [30]&gt;</code></pre>
+<p>..here is good to realize that <code>data</code> is basically replicated <code>gh_repos</code>.</p>
+<pre class="r"><code># now mutate whatever you want by extracting using mutate + map depending on level of nest
+t %&gt;% 
+  mutate(package = data %&gt;% map(map_chr, ~.$name)) %&gt;%
+  # the index = 1 is OK here as we will extract just one (first) item from sub-list as all others are the same.
+  mutate(owner_url = data %&gt;% map_chr(~.[[1]]$owner$url)) %&gt;% 
+  unnest(package, .drop = FALSE)</code></pre>
+<pre><code>## # A tibble: 176 x 4
+##    name        data        owner_url                             package   
+##    &lt;chr&gt;       &lt;list&gt;      &lt;chr&gt;                                 &lt;chr&gt;     
+##  1 gaborcsardi &lt;list [30]&gt; https://api.github.com/users/gaborcs~ after     
+##  2 gaborcsardi &lt;list [30]&gt; https://api.github.com/users/gaborcs~ argufy    
+##  3 gaborcsardi &lt;list [30]&gt; https://api.github.com/users/gaborcs~ ask       
+##  4 gaborcsardi &lt;list [30]&gt; https://api.github.com/users/gaborcs~ baseimpor~
+##  5 gaborcsardi &lt;list [30]&gt; https://api.github.com/users/gaborcs~ citest    
+##  6 gaborcsardi &lt;list [30]&gt; https://api.github.com/users/gaborcs~ clisymbols
+##  7 gaborcsardi &lt;list [30]&gt; https://api.github.com/users/gaborcs~ cmaker    
+##  8 gaborcsardi &lt;list [30]&gt; https://api.github.com/users/gaborcs~ cmark     
+##  9 gaborcsardi &lt;list [30]&gt; https://api.github.com/users/gaborcs~ conditions
+## 10 gaborcsardi &lt;list [30]&gt; https://api.github.com/users/gaborcs~ crayon    
+## # ... with 166 more rows</code></pre>
+</div>

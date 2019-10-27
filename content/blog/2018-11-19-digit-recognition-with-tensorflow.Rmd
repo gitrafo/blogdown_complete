@@ -1,0 +1,124 @@
+---
+title: Digit recognition with TensorFlow
+author: Petr Schönbauer
+date: '2018-11-19'
+slug: digit-recognition-with-tensorflow
+categories: []
+tags:
+  - R
+  - tensorflow
+  - machine learning
+draft: true
+---
+
+Introduction myself to machine learing with Keras / TensorFlow. This post is based on [R Studio Keras blog tutorial](https://tensorflow.rstudio.com/keras/)
+
+# What is what?
+
+* Keras = high-level neural networks API for TensorFlow written in Python
+* TensorFlow = Python-friendly open source library for numerical computation
+* Anaconda = Python distribution (platform for data science)
+
+Ok, Python, Python, Python - I think I´ll need Python:) to be installed besides R package Keras. It will not be that easy. 
+
+First step - install ["Anaconda ditribution"](https://www.anaconda.com/download/) - should play well with Keras (Stackoverflow masters say so, so it must be truth:)).
+
+# R
+```{r, message=FALSE}
+library(keras)
+library(tidyverse)
+library(tensorflow)
+```
+
+Install Keras first. By default the CPU-based installation of Keras and TensorFlow is installed. Seems I can use GPU based one too, maybe later. 
+```{r, message=FALSE}
+# install_keras()
+```
+
+# MNIST digit recognition aka machine learning "Hello world"
+MNIST = Modified National Institute of Standards and Technology database is a large database of handwritten digits that is commonly used for training various image processing systems. `dataset_mnist()` function will download the dataset.
+```{r}
+mnist <- dataset_mnist()
+```
+
+```{r}
+mnist %>% glimpse
+```
+
+Dataset contains two lists - train and test set. 
+
+* `train` contains 60000 observations (images) for training
+* `test` contains 10000 observation (images) for testing.
+
+* `x` is a 3D array - no. of image, width, height
+* `y` is a 1D array - corresponding digit (class)
+
+3D array is basically set of matrices. Each image is described by 28x28 matrix. Each point represent pixel. The value represent color in greyscale range of 0-255.
+
+For example, code below indexes first 20x10 pixels of 3rd image from `train` set. We can recognize piece of digit 4. 
+
+```{r}
+mnist$train$x[3, 1:20, 1:10]
+mnist$train$y[3]
+```
+
+```{r}
+x_train <- mnist$train$x
+y_train <- mnist$train$y
+x_test <- mnist$test$x
+y_test <- mnist$test$y
+```
+
+```{r}
+# reshape
+x_train <- array_reshape(x_train, c(nrow(x_train), 784))
+x_test <- array_reshape(x_test, c(nrow(x_test), 784))
+# rescale
+x_train <- x_train / 255
+x_test <- x_test / 255
+```
+
+```{r}
+y_train <- to_categorical(y_train, 10)
+y_test <- to_categorical(y_test, 10)
+```
+
+```{r}
+model <- keras_model_sequential() 
+model %>% 
+  layer_dense(units = 256, activation = 'relu', input_shape = c(784)) %>% 
+  layer_dropout(rate = 0.4) %>% 
+  layer_dense(units = 128, activation = 'relu') %>%
+  layer_dropout(rate = 0.3) %>%
+  layer_dense(units = 10, activation = 'softmax')
+```
+
+```{r}
+model %>% compile(
+  loss = 'categorical_crossentropy',
+  optimizer = optimizer_rmsprop(),
+  metrics = c('accuracy')
+)
+```
+
+```{r}
+history <- model %>% fit(
+  x_train, y_train, 
+  epochs = 30, batch_size = 128, 
+  validation_split = 0.2
+)
+```
+
+```{r}
+plot(history)
+```
+
+
+```{r}
+model %>% evaluate(x_test, y_test)
+```
+
+```{r}
+model %>% predict_classes(x_test) %>% head
+```
+

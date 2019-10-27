@@ -1,0 +1,266 @@
+---
+title: "Top 20 movies based on IMDB scores"
+author: "Petr Schönbauer"
+date: "2017-09-10"
+slug: top-20-movies-based-on-imdb-scores
+tags:
+- R
+- IMBD
+- ggplot2
+categories: []
+---
+
+
+
+<pre class="r"><code># load libraries
+library(tidyverse)
+library(stringr)
+library(shiny)</code></pre>
+<div id="basic-data-wrangling-first" class="section level1">
+<h1>Basic data wrangling first</h1>
+<div id="load-and-check-the-data-structure" class="section level2">
+<h2>Load and check the data structure</h2>
+<pre class="r"><code># load data
+raw &lt;- read_csv(&quot;../../static/data/movie_data.csv&quot;)
+
+# structure of data
+glimpse(raw)</code></pre>
+<pre><code>## Observations: 5,043
+## Variables: 28
+## $ color                     &lt;chr&gt; &quot;Color&quot;, &quot;Color&quot;, &quot;Color&quot;, &quot;Color&quot;, ...
+## $ director_name             &lt;chr&gt; &quot;James Cameron&quot;, &quot;Gore Verbinski&quot;, &quot;...
+## $ num_critic_for_reviews    &lt;dbl&gt; 723, 302, 602, 813, NA, 462, 392, 32...
+## $ duration                  &lt;dbl&gt; 178, 169, 148, 164, NA, 132, 156, 10...
+## $ director_facebook_likes   &lt;dbl&gt; 0, 563, 0, 22000, 131, 475, 0, 15, 0...
+## $ actor_3_facebook_likes    &lt;dbl&gt; 855, 1000, 161, 23000, NA, 530, 4000...
+## $ actor_2_name              &lt;chr&gt; &quot;Joel David Moore&quot;, &quot;Orlando Bloom&quot;,...
+## $ actor_1_facebook_likes    &lt;dbl&gt; 1000, 40000, 11000, 27000, 131, 640,...
+## $ gross                     &lt;dbl&gt; 760505847, 309404152, 200074175, 448...
+## $ genres                    &lt;chr&gt; &quot;Action|Adventure|Fantasy|Sci-Fi&quot;, &quot;...
+## $ actor_1_name              &lt;chr&gt; &quot;CCH Pounder&quot;, &quot;Johnny Depp&quot;, &quot;Chris...
+## $ movie_title               &lt;chr&gt; &quot;Avatar &quot;, &quot;Pirates of the Caribbean...
+## $ num_voted_users           &lt;dbl&gt; 886204, 471220, 275868, 1144337, 8, ...
+## $ cast_total_facebook_likes &lt;dbl&gt; 4834, 48350, 11700, 106759, 143, 187...
+## $ actor_3_name              &lt;chr&gt; &quot;Wes Studi&quot;, &quot;Jack Davenport&quot;, &quot;Step...
+## $ facenumber_in_poster      &lt;dbl&gt; 0, 0, 1, 0, 0, 1, 0, 1, 4, 3, 0, 0, ...
+## $ plot_keywords             &lt;chr&gt; &quot;avatar|future|marine|native|paraple...
+## $ movie_imdb_link           &lt;chr&gt; &quot;http://www.imdb.com/title/tt0499549...
+## $ num_user_for_reviews      &lt;dbl&gt; 3054, 1238, 994, 2701, NA, 738, 1902...
+## $ language                  &lt;chr&gt; &quot;English&quot;, &quot;English&quot;, &quot;English&quot;, &quot;En...
+## $ country                   &lt;chr&gt; &quot;USA&quot;, &quot;USA&quot;, &quot;UK&quot;, &quot;USA&quot;, NA, &quot;USA&quot;...
+## $ content_rating            &lt;chr&gt; &quot;PG-13&quot;, &quot;PG-13&quot;, &quot;PG-13&quot;, &quot;PG-13&quot;, ...
+## $ budget                    &lt;dbl&gt; 237000000, 300000000, 245000000, 250...
+## $ title_year                &lt;dbl&gt; 2009, 2007, 2015, 2012, NA, 2012, 20...
+## $ actor_2_facebook_likes    &lt;dbl&gt; 936, 5000, 393, 23000, 12, 632, 1100...
+## $ imdb_score                &lt;dbl&gt; 7.9, 7.1, 6.8, 8.5, 7.1, 6.6, 6.2, 7...
+## $ aspect_ratio              &lt;dbl&gt; 1.78, 2.35, 2.35, 2.35, NA, 2.35, 2....
+## $ movie_facebook_likes      &lt;dbl&gt; 33000, 0, 85000, 164000, 0, 24000, 0...</code></pre>
+<pre class="r"><code># show character and numeric variables separately
+raw %&gt;% 
+  select_if(is.character) %&gt;% 
+  glimpse</code></pre>
+<pre><code>## Observations: 5,043
+## Variables: 12
+## $ color           &lt;chr&gt; &quot;Color&quot;, &quot;Color&quot;, &quot;Color&quot;, &quot;Color&quot;, NA, &quot;Color...
+## $ director_name   &lt;chr&gt; &quot;James Cameron&quot;, &quot;Gore Verbinski&quot;, &quot;Sam Mendes...
+## $ actor_2_name    &lt;chr&gt; &quot;Joel David Moore&quot;, &quot;Orlando Bloom&quot;, &quot;Rory Kin...
+## $ genres          &lt;chr&gt; &quot;Action|Adventure|Fantasy|Sci-Fi&quot;, &quot;Action|Adv...
+## $ actor_1_name    &lt;chr&gt; &quot;CCH Pounder&quot;, &quot;Johnny Depp&quot;, &quot;Christoph Waltz...
+## $ movie_title     &lt;chr&gt; &quot;Avatar &quot;, &quot;Pirates of the Caribbean: At World...
+## $ actor_3_name    &lt;chr&gt; &quot;Wes Studi&quot;, &quot;Jack Davenport&quot;, &quot;Stephanie Sigm...
+## $ plot_keywords   &lt;chr&gt; &quot;avatar|future|marine|native|paraplegic&quot;, &quot;god...
+## $ movie_imdb_link &lt;chr&gt; &quot;http://www.imdb.com/title/tt0499549/?ref_=fn_...
+## $ language        &lt;chr&gt; &quot;English&quot;, &quot;English&quot;, &quot;English&quot;, &quot;English&quot;, NA...
+## $ country         &lt;chr&gt; &quot;USA&quot;, &quot;USA&quot;, &quot;UK&quot;, &quot;USA&quot;, NA, &quot;USA&quot;, &quot;USA&quot;, &quot;...
+## $ content_rating  &lt;chr&gt; &quot;PG-13&quot;, &quot;PG-13&quot;, &quot;PG-13&quot;, &quot;PG-13&quot;, NA, &quot;PG-13...</code></pre>
+<pre class="r"><code>raw %&gt;% 
+  select_if(is.numeric) %&gt;% 
+  glimpse</code></pre>
+<pre><code>## Observations: 5,043
+## Variables: 16
+## $ num_critic_for_reviews    &lt;dbl&gt; 723, 302, 602, 813, NA, 462, 392, 32...
+## $ duration                  &lt;dbl&gt; 178, 169, 148, 164, NA, 132, 156, 10...
+## $ director_facebook_likes   &lt;dbl&gt; 0, 563, 0, 22000, 131, 475, 0, 15, 0...
+## $ actor_3_facebook_likes    &lt;dbl&gt; 855, 1000, 161, 23000, NA, 530, 4000...
+## $ actor_1_facebook_likes    &lt;dbl&gt; 1000, 40000, 11000, 27000, 131, 640,...
+## $ gross                     &lt;dbl&gt; 760505847, 309404152, 200074175, 448...
+## $ num_voted_users           &lt;dbl&gt; 886204, 471220, 275868, 1144337, 8, ...
+## $ cast_total_facebook_likes &lt;dbl&gt; 4834, 48350, 11700, 106759, 143, 187...
+## $ facenumber_in_poster      &lt;dbl&gt; 0, 0, 1, 0, 0, 1, 0, 1, 4, 3, 0, 0, ...
+## $ num_user_for_reviews      &lt;dbl&gt; 3054, 1238, 994, 2701, NA, 738, 1902...
+## $ budget                    &lt;dbl&gt; 237000000, 300000000, 245000000, 250...
+## $ title_year                &lt;dbl&gt; 2009, 2007, 2015, 2012, NA, 2012, 20...
+## $ actor_2_facebook_likes    &lt;dbl&gt; 936, 5000, 393, 23000, 12, 632, 1100...
+## $ imdb_score                &lt;dbl&gt; 7.9, 7.1, 6.8, 8.5, 7.1, 6.6, 6.2, 7...
+## $ aspect_ratio              &lt;dbl&gt; 1.78, 2.35, 2.35, 2.35, NA, 2.35, 2....
+## $ movie_facebook_likes      &lt;dbl&gt; 33000, 0, 85000, 164000, 0, 24000, 0...</code></pre>
+</div>
+<div id="trim-the-movie_title-variable" class="section level2">
+<h2>Trim the <code>movie_title</code> variable</h2>
+<p>Types of variables seems to be reasonably assigned. For some reason there ia a whitespace at the end of each <code>movie_title</code>. Let´s fix it with <code>str_trim</code> from <code>stringr</code> library.</p>
+<pre class="r"><code># remove whitespaces from movie_title
+df &lt;- raw %&gt;% 
+  mutate(movie_title = str_trim(movie_title))
+
+df$movie_title %&gt;% head</code></pre>
+<pre><code>## [1] &quot;Avatar&quot;                                    
+## [2] &quot;Pirates of the Caribbean: At World&#39;s End&quot;  
+## [3] &quot;Spectre&quot;                                   
+## [4] &quot;The Dark Knight Rises&quot;                     
+## [5] &quot;Star Wars: Episode VII - The Force Awakens&quot;
+## [6] &quot;John Carter&quot;</code></pre>
+<p>No more whitespaces.</p>
+</div>
+<div id="remove-duplicated-movies" class="section level2">
+<h2>Remove duplicated movies</h2>
+<p>Are there some duplicated movies?</p>
+<pre class="r"><code># count of observations (movies)
+nrow(df)</code></pre>
+<pre><code>## [1] 5043</code></pre>
+<pre class="r"><code># count of unique movies
+df %&gt;% 
+  distinct(movie_title) %&gt;% 
+  count()</code></pre>
+<pre><code>## # A tibble: 1 x 1
+##       n
+##   &lt;int&gt;
+## 1  4916</code></pre>
+<pre class="r"><code># or using dplyr´s n_distinct function
+n_distinct(df$movie_title)</code></pre>
+<pre><code>## [1] 4916</code></pre>
+<p>Alternative:</p>
+<pre class="r"><code># any duplicated?
+any(duplicated(df$movie_title))</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<pre class="r"><code># sum of duplicated movies
+sum(duplicated(df$movie_title))</code></pre>
+<pre><code>## [1] 127</code></pre>
+<p>Yes, there are some, let´s exclude them.</p>
+<pre class="r"><code># remove duplicates
+df &lt;- df[!duplicated(df$movie_title),]
+
+# count of unique movies after removing of duplicates
+df %&gt;% 
+  distinct(movie_title) %&gt;% 
+  count()</code></pre>
+<pre><code>## # A tibble: 1 x 1
+##       n
+##   &lt;int&gt;
+## 1  4916</code></pre>
+</div>
+</div>
+<div id="simple-exploratory-analysis-static-vs.-interactive" class="section level1">
+<h1>Simple exploratory analysis (static vs. interactive)</h1>
+<div id="top-20-movies-according-to-imdb-scores" class="section level2">
+<h2>Top 20 movies according to IMDB scores</h2>
+<p>First check the <code>num_voted_users</code> of movies with top 10 <code>imdb_scores</code>.</p>
+<pre class="r"><code>df %&gt;% 
+  arrange(desc(imdb_score)) %&gt;% 
+  slice(1:20) %&gt;% 
+  arrange(num_voted_users) %&gt;%
+  select(movie_title,num_voted_users) %&gt;% 
+  print(n=10)</code></pre>
+<pre><code>## # A tibble: 20 x 2
+##    movie_title                                    num_voted_users
+##    &lt;chr&gt;                                                    &lt;dbl&gt;
+##  1 Towering Inferno                                            10
+##  2 Kickboxer: Vengeance                                       246
+##  3 Dekalog                                                  12590
+##  4 It&#39;s Always Sunny in Philadelphia                       133415
+##  5 Fargo                                                   170055
+##  6 Daredevil                                               213483
+##  7 12 Angry Men                                            447785
+##  8 The Good, the Bad and the Ugly                          503509
+##  9 The Godfather: Part II                                  790926
+## 10 Star Wars: Episode V - The Empire Strikes Back          837759
+## # ... with 10 more rows</code></pre>
+<p>Obviously, there is some issue in data. For example only 10 voters for movie “Towering inferno” seems not to be plausible. Assuming the IMDB scores are correctly collected let´s exclude the movies with less than 10 000 votes. It seems to be resonable threshold. In addition color the bars by country of origin.</p>
+<pre class="r"><code># plot the top 20 movies and color by country
+df %&gt;%
+  filter(num_voted_users &gt; 10000) %&gt;% 
+  arrange(desc(imdb_score)) %&gt;% 
+  slice(1:20) %&gt;% 
+  ggplot(aes(reorder(movie_title, imdb_score), imdb_score, fill = country)) +
+  geom_bar(stat = &quot;identity&quot;) +
+  scale_y_continuous(breaks = seq(0,10,1)) +
+  coord_flip() +
+  labs(title = &quot;Top 20 movies according to IMDB scores&quot;,
+       subtitle = &quot;by country&quot;,
+       y = &quot;IMDB score&quot;,
+       x = &quot;Movie title&quot;) +
+  theme(plot.title = element_text(face = &quot;bold&quot;,
+                                  size = 16,
+                                  hjust = 1),
+        plot.subtitle = element_text(face = &quot;italic&quot;,
+                                     size = 11,
+                                     hjust = 0)
+  )</code></pre>
+<p><img src="/blog/2017-09-10-top-20-movies-based-on-imdb-scores_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+<p>As expected, most of the movies were produced in US.</p>
+</div>
+<div id="top-n-movies-by-country---the-static-approach-first" class="section level2">
+<h2>Top n movies by country - the “static” approach first</h2>
+<p>Say, I´m interested in top 10 movies from UK only.</p>
+<pre class="r"><code># plot the top 10 movies from UK
+df %&gt;% 
+  filter(num_voted_users &gt; 10000) %&gt;% 
+  filter(country %in% c(&quot;UK&quot;)) %&gt;% 
+  arrange(desc(imdb_score)) %&gt;% 
+  slice(1:10) %&gt;% 
+  ggplot(aes(reorder(movie_title, imdb_score), imdb_score, fill = country)) +
+  geom_bar(stat = &quot;identity&quot;) +
+  scale_y_continuous(breaks = seq(0,10,1)) +
+  coord_flip() +
+  labs(title = &quot;Top 10 movies according to IMDB scores&quot;,
+       y = &quot;IMDB score&quot;,
+       x = &quot;Movie title&quot;) +
+  theme(plot.title = element_text(face = &quot;bold&quot;, size = 16, hjust = 0),
+        plot.subtitle = element_text(face = &quot;italic&quot;, size = 11, hjust = 0))</code></pre>
+<p><img src="/blog/2017-09-10-top-20-movies-based-on-imdb-scores_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
+</div>
+<div id="top-n-movies-by-country---interactive-shiny-approach" class="section level2">
+<h2>Top n movies by country - interactive (Shiny) approach</h2>
+<p>Simple user interface in Shiny allows interactive data visualization much simpler, here just the screenshot with code example (R-server neccessary in order to run Shiny apps).</p>
+<p><img src="https://imgur.com/r68yUFs" /></p>
+<p>The code itself is quite self-explanatory.</p>
+<pre class="r"><code># build UI
+inputPanel(selectInput(inputId = &quot;country&quot;, label = &quot;country&quot;, choices = df %&gt;% 
+              filter(num_voted_users &gt; 10000) %&gt;% 
+              distinct(country) %&gt;% 
+              .$country %&gt;% 
+              sort),
+           
+           sliderInput(inputId = &quot;slider&quot;, label = &quot;top n&quot;, min = 0, max = 20, value = 10, step = 1)
+           )
+
+# create reactive variable df_shiny
+df_shiny &lt;- reactive({
+  df %&gt;% 
+  filter(num_voted_users &gt; 10000) %&gt;% 
+  filter(country %in% input$country) %&gt;% 
+  arrange(desc(imdb_score)) %&gt;% 
+  slice(1:input$slider)
+})
+
+# render plot if df_shiny has changed
+renderPlot({
+  df_shiny() %&gt;% 
+    ggplot(aes(reorder(movie_title, imdb_score), imdb_score, fill = country)) +
+    geom_bar(stat = &quot;identity&quot;) +
+    scale_y_continuous(breaks = seq(0,10,1)) +
+    coord_flip() +
+    labs(title = paste(&quot;Top&quot;,input$slider,&quot;movies according to IMDB scores&quot;),
+         y = &quot;IMDB score&quot;,
+         x = &quot;Movie title&quot;) +
+    theme(plot.title = element_text(face = &quot;bold&quot;,
+                                    size = 16,
+                                    hjust = 0),
+          plot.subtitle = element_text(face = &quot;italic&quot;,
+                                       size = 11,
+                                       hjust = 0),
+          axis.text = element_text(size = 12),
+          axis.title = element_text(size = 14)
+    )
+})</code></pre>
+</div>
+</div>
