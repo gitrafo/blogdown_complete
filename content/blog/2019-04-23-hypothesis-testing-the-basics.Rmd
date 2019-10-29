@@ -16,7 +16,7 @@ library(tidytext)
 library(janeaustenr)
 ```
 
-2 knihy - střední hodnota (mean), standardní odchylka (sd), rozptyl (variance) délek slov, graficky rozdělení délek slov
+2 knihy - střední hodn. (mean), standardní odchylka (sd), rozptyl (variance) délek slov, graficky rozdělení délek slov
 ```{r}
 books <- austen_books() %>% 
   group_by(book) %>% 

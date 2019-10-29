@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Blog on Data playground</title>
@@ -17,7 +17,7 @@
       <pubDate>Tue, 23 Apr 2019 00:00:00 +0000</pubDate>
       
       <guid>/blog/hypothesis-testing-the-basics/</guid>
-      <description>library(tidyverse)library(tidytext)library(janeaustenr)2 knihy - střední hodnota (mean), standardní odchylka (sd), rozptyl (variance) délek slov, graficky rozdělení délek slov
+      <description>library(tidyverse)library(tidytext)library(janeaustenr)2 knihy - střední hodn. (mean), standardní odchylka (sd), rozptyl (variance) délek slov, graficky rozdělení délek slov
 books &amp;lt;- austen_books() %&amp;gt;% group_by(book) %&amp;gt;% group_split()books_word &amp;lt;- books %&amp;gt;% #.[c(1,2)] %&amp;gt;% map(~unnest_tokens(.x, word, text)) %&amp;gt;% map(~.x %&amp;gt;% mutate(word_length = str_length(word))) %&amp;gt;% bind_rows()books_word %&amp;gt;% ggplot(aes(x = word_length)) +geom_histogram() + facet_wrap(~book)## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</description>
     </item>
     
