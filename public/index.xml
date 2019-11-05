@@ -6,10 +6,19 @@
     <description>Recent content on Data playground</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Sun, 10 Sep 2017 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Fri, 10 Nov 2017 00:00:00 +0000</lastBuildDate>
     
 	<atom:link href="/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>How to model using caret package - cookbook</title>
+      <link>/2017/11/10/how-to-model-using-caret-package-cookbook/</link>
+      <pubDate>Fri, 10 Nov 2017 00:00:00 +0000</pubDate>
+      
+      <guid>/2017/11/10/how-to-model-using-caret-package-cookbook/</guid>
+      <description>Data wranglingLoad data, remove redundat variablesSummary of dataModelsCreate common validation indicies, trainControlglmnet modelrandomForest modelCompare glmnet and randomForest performanceConclusionHello. Purpose of this post is to share and learn basics of modeling, sort of a simple “cookbook” how to apply several type of models (glmnet and random forest in this case) on the same train/test splits using caret package, evaluate and compare its performance.</description>
+    </item>
     
     <item>
       <title>Top 20 movies based on IMDB scores</title>

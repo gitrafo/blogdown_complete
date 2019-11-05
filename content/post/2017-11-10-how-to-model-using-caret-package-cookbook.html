@@ -1,0 +1,363 @@
+---
+title: "How to model using caret package - cookbook"
+author: "Petr Schönbauer"
+date: "2017-11-10"
+slug: how-to-model-using-caret-package-cookbook
+categories: []
+tags:
+  - R
+  - model
+  - glmnet
+  - random forest
+output:
+  blogdown::html_page:
+    toc: true
+    fig_width: 6
+    dev: "svg"
+---
+
+
+<div id="TOC">
+<ul>
+<li><a href="#data-wrangling">Data wrangling</a><ul>
+<li><a href="#load-data-remove-redundat-variables">Load data, remove redundat variables</a></li>
+<li><a href="#summary-of-data">Summary of data</a></li>
+</ul></li>
+<li><a href="#models">Models</a><ul>
+<li><a href="#create-common-validation-indicies-traincontrol">Create common validation indicies, <code>trainControl</code></a></li>
+<li><a href="#glmnet-model">glmnet model</a></li>
+<li><a href="#randomforest-model">randomForest model</a></li>
+<li><a href="#compare-glmnet-and-randomforest-performance">Compare glmnet and randomForest performance</a></li>
+</ul></li>
+<li><a href="#conclusion">Conclusion</a></li>
+</ul>
+</div>
+
+<p>Hello. Purpose of this post is to share and learn basics of modeling, sort of a simple “cookbook” how to apply several type of models (glmnet and random forest in this case) on the same train/test splits using caret package, evaluate and compare its performance. Some sort of reference. We´re going to predict breast cancer diagnosis (malign “M” or benign "B) from Kaggle´s <a href="https://www.kaggle.com/uciml/breast-cancer-wisconsin-data">data set</a>. Let´s get started:)</p>
+<pre class="r"><code># load libraries
+library(tidyverse)
+library(glmnet)
+library(ranger)
+library(caret)
+library(caTools)
+library(ranger)
+library(e1071)</code></pre>
+<div id="data-wrangling" class="section level1">
+<h1>Data wrangling</h1>
+<div id="load-data-remove-redundat-variables" class="section level2">
+<h2>Load data, remove redundat variables</h2>
+<pre class="r"><code># load data
+df &lt;- read_csv(&quot;../../static/data/breast_data.csv&quot;)
+
+# glimpse raw data
+df %&gt;% glimpse</code></pre>
+<pre><code>## Observations: 569
+## Variables: 33
+## $ id                      &lt;dbl&gt; 842302, 842517, 84300903, 84348301, 84...
+## $ diagnosis               &lt;chr&gt; &quot;M&quot;, &quot;M&quot;, &quot;M&quot;, &quot;M&quot;, &quot;M&quot;, &quot;M&quot;, &quot;M&quot;, &quot;M&quot;...
+## $ radius_mean             &lt;dbl&gt; 17.990, 20.570, 19.690, 11.420, 20.290...
+## $ texture_mean            &lt;dbl&gt; 10.38, 17.77, 21.25, 20.38, 14.34, 15....
+## $ perimeter_mean          &lt;dbl&gt; 122.80, 132.90, 130.00, 77.58, 135.10,...
+## $ area_mean               &lt;dbl&gt; 1001.0, 1326.0, 1203.0, 386.1, 1297.0,...
+## $ smoothness_mean         &lt;dbl&gt; 0.11840, 0.08474, 0.10960, 0.14250, 0....
+## $ compactness_mean        &lt;dbl&gt; 0.27760, 0.07864, 0.15990, 0.28390, 0....
+## $ concavity_mean          &lt;dbl&gt; 0.30010, 0.08690, 0.19740, 0.24140, 0....
+## $ `concave points_mean`   &lt;dbl&gt; 0.14710, 0.07017, 0.12790, 0.10520, 0....
+## $ symmetry_mean           &lt;dbl&gt; 0.2419, 0.1812, 0.2069, 0.2597, 0.1809...
+## $ fractal_dimension_mean  &lt;dbl&gt; 0.07871, 0.05667, 0.05999, 0.09744, 0....
+## $ radius_se               &lt;dbl&gt; 1.0950, 0.5435, 0.7456, 0.4956, 0.7572...
+## $ texture_se              &lt;dbl&gt; 0.9053, 0.7339, 0.7869, 1.1560, 0.7813...
+## $ perimeter_se            &lt;dbl&gt; 8.589, 3.398, 4.585, 3.445, 5.438, 2.2...
+## $ area_se                 &lt;dbl&gt; 153.40, 74.08, 94.03, 27.23, 94.44, 27...
+## $ smoothness_se           &lt;dbl&gt; 0.006399, 0.005225, 0.006150, 0.009110...
+## $ compactness_se          &lt;dbl&gt; 0.049040, 0.013080, 0.040060, 0.074580...
+## $ concavity_se            &lt;dbl&gt; 0.05373, 0.01860, 0.03832, 0.05661, 0....
+## $ `concave points_se`     &lt;dbl&gt; 0.015870, 0.013400, 0.020580, 0.018670...
+## $ symmetry_se             &lt;dbl&gt; 0.03003, 0.01389, 0.02250, 0.05963, 0....
+## $ fractal_dimension_se    &lt;dbl&gt; 0.006193, 0.003532, 0.004571, 0.009208...
+## $ radius_worst            &lt;dbl&gt; 25.38, 24.99, 23.57, 14.91, 22.54, 15....
+## $ texture_worst           &lt;dbl&gt; 17.33, 23.41, 25.53, 26.50, 16.67, 23....
+## $ perimeter_worst         &lt;dbl&gt; 184.60, 158.80, 152.50, 98.87, 152.20,...
+## $ area_worst              &lt;dbl&gt; 2019.0, 1956.0, 1709.0, 567.7, 1575.0,...
+## $ smoothness_worst        &lt;dbl&gt; 0.1622, 0.1238, 0.1444, 0.2098, 0.1374...
+## $ compactness_worst       &lt;dbl&gt; 0.6656, 0.1866, 0.4245, 0.8663, 0.2050...
+## $ concavity_worst         &lt;dbl&gt; 0.71190, 0.24160, 0.45040, 0.68690, 0....
+## $ `concave points_worst`  &lt;dbl&gt; 0.26540, 0.18600, 0.24300, 0.25750, 0....
+## $ symmetry_worst          &lt;dbl&gt; 0.4601, 0.2750, 0.3613, 0.6638, 0.2364...
+## $ fractal_dimension_worst &lt;dbl&gt; 0.11890, 0.08902, 0.08758, 0.17300, 0....
+## $ X33                     &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA...</code></pre>
+<pre class="r"><code># remove redundat columns
+df &lt;- df %&gt;% 
+  select(-id, -X33)
+
+# convert diagnosis as factor
+df$diagnosis &lt;- as.factor(df$diagnosis)</code></pre>
+</div>
+<div id="summary-of-data" class="section level2">
+<h2>Summary of data</h2>
+<pre class="r"><code># propotion of benign/malignant
+table(df$diagnosis)</code></pre>
+<pre><code>## 
+##   B   M 
+## 357 212</code></pre>
+<pre class="r"><code>prop.table(table(df$diagnosis))</code></pre>
+<pre><code>## 
+##         B         M 
+## 0.6274165 0.3725835</code></pre>
+<pre class="r"><code># are there any missing values?
+any(is.na(df))</code></pre>
+<pre><code>## [1] FALSE</code></pre>
+<p>In total:</p>
+<ul>
+<li>569 observations
+<ul>
+<li>357 benign (62%)</li>
+<li>212 malignant (37%)</li>
+</ul></li>
+<li>30 predictor variables</li>
+<li>no missing values</li>
+</ul>
+</div>
+</div>
+<div id="models" class="section level1">
+<h1>Models</h1>
+<div id="create-common-validation-indicies-traincontrol" class="section level2">
+<h2>Create common validation indicies, <code>trainControl</code></h2>
+<p>Start with dividing predictors (features) and response (class) into separated variables <code>df_x</code> and <code>df_y</code>.</p>
+<pre class="r"><code># subset predictors variables
+df_x &lt;- df %&gt;% select(-diagnosis)
+
+# subset response variable
+df_y &lt;- df$diagnosis</code></pre>
+<p>In order to achieve fair comparison of models we have to train and test models on the same train/test splits. <code>createFolds</code> seems to be covinient way how to achieve such splits. The outcome (indices) are used later as an <code>index</code> parameter of common <code>trainControl</code> object for all tested models.</p>
+<pre class="r"><code># create indices for each fold
+my_folds &lt;- createFolds(df_y, k = 10)</code></pre>
+<p><code>my_folds</code> now contains indices of held-out (validation) samples of each fold. In addition distribution of class (benign / malignant) is preserved.</p>
+<pre class="r"><code># structure of &quot;my_fold&quot;
+my_folds %&gt;% glimpse</code></pre>
+<pre><code>## List of 10
+##  $ Fold01: int [1:57] 5 12 35 59 68 76 77 79 90 92 ...
+##  $ Fold02: int [1:57] 3 7 14 22 27 29 32 44 64 72 ...
+##  $ Fold03: int [1:57] 19 24 40 45 61 63 75 80 117 138 ...
+##  $ Fold04: int [1:58] 2 6 11 18 23 52 53 54 69 85 ...
+##  $ Fold05: int [1:57] 21 34 46 91 94 95 96 104 109 113 ...
+##  $ Fold06: int [1:57] 9 31 36 65 73 84 108 110 112 119 ...
+##  $ Fold07: int [1:57] 26 37 43 48 49 62 67 71 81 87 ...
+##  $ Fold08: int [1:56] 1 8 33 41 42 55 58 82 88 99 ...
+##  $ Fold09: int [1:57] 10 15 16 17 20 28 39 50 51 56 ...
+##  $ Fold10: int [1:56] 4 13 25 30 38 47 57 70 74 78 ...</code></pre>
+<pre class="r"><code># distribution of class is preserved in each fold
+my_folds %&gt;% 
+  map_df(~prop.table(table(df_y[.])))</code></pre>
+<pre><code>## # A tibble: 2 x 10
+##   Fold01 Fold02 Fold03 Fold04 Fold05 Fold06 Fold07 Fold08 Fold09 Fold10
+##    &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;
+## 1  0.632  0.632  0.632  0.621  0.632  0.632  0.614  0.625  0.632  0.625
+## 2  0.368  0.368  0.368  0.379  0.368  0.368  0.386  0.375  0.368  0.375</code></pre>
+<pre class="r"><code># create trainControl object
+my_trainControl &lt;- trainControl(
+  summaryFunction = twoClassSummary,
+  classProbs = TRUE,
+  verboseIter = FALSE,
+  savePredictions = TRUE,
+  index = my_folds)</code></pre>
+</div>
+<div id="glmnet-model" class="section level2">
+<h2>glmnet model</h2>
+<pre class="r"><code># train glmnet model
+model_glmnet &lt;- train(x = df_x, y = df_y, 
+                   method = &quot;glmnet&quot;,
+                   metric = &quot;ROC&quot;,
+                   tuneLength = 3,
+                   trControl = my_trainControl)
+
+# print model
+model_glmnet</code></pre>
+<pre><code>## glmnet 
+## 
+## 569 samples
+##  30 predictor
+##   2 classes: &#39;B&#39;, &#39;M&#39; 
+## 
+## No pre-processing
+## Resampling: Bootstrapped (10 reps) 
+## Summary of sample sizes: 57, 57, 57, 58, 57, 57, ... 
+## Resampling results across tuning parameters:
+## 
+##   alpha  lambda        ROC        Sens       Spec     
+##   0.10   0.0007673665  0.9823835  0.9539463  0.9098595
+##   0.10   0.0076736649  0.9851246  0.9648352  0.9082943
+##   0.10   0.0767366489  0.9876976  0.9769683  0.8972720
+##   0.55   0.0007673665  0.9809085  0.9520791  0.9072444
+##   0.55   0.0076736649  0.9832489  0.9642180  0.9109066
+##   0.55   0.0767366489  0.9848127  0.9794625  0.8653072
+##   1.00   0.0007673665  0.9780695  0.9505263  0.9093469
+##   1.00   0.0076736649  0.9816381  0.9586154  0.9109121
+##   1.00   0.0767366489  0.9800363  0.9757183  0.8464398
+## 
+## ROC was used to select the optimal model using the largest value.
+## The final values used for the model were alpha = 0.1 and lambda
+##  = 0.07673665.</code></pre>
+<p>Some remarks:</p>
+<ul>
+<li>ROC = area under curve</li>
+<li>Sens = sensitivity = true positive rate = proportion of positives that are correctly identified as such</li>
+<li>Spec = specificity = true negative rate = proportion of negatives that are correctly identified as such</li>
+</ul>
+<p>Another approach to find the model with the highest ROC:</p>
+<pre class="r"><code>model_glmnet$results %&gt;% 
+  as.tibble %&gt;%  
+  arrange(desc(ROC))</code></pre>
+<pre><code>## Warning: `as.tibble()` is deprecated, use `as_tibble()` (but mind the new semantics).
+## This warning is displayed once per session.</code></pre>
+<pre><code>## # A tibble: 9 x 8
+##   alpha   lambda   ROC  Sens  Spec   ROCSD SensSD SpecSD
+##   &lt;dbl&gt;    &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;
+## 1  0.1  0.0767   0.988 0.977 0.897 0.00660 0.0216 0.0376
+## 2  0.1  0.00767  0.985 0.965 0.908 0.00613 0.0249 0.0417
+## 3  0.55 0.0767   0.985 0.979 0.865 0.00604 0.0195 0.0401
+## 4  0.55 0.00767  0.983 0.964 0.911 0.00781 0.0276 0.0371
+## 5  0.1  0.000767 0.982 0.954 0.910 0.00765 0.0281 0.0394
+## 6  1    0.00767  0.982 0.959 0.911 0.00962 0.0296 0.0312
+## 7  0.55 0.000767 0.981 0.952 0.907 0.00911 0.0324 0.0364
+## 8  1    0.0767   0.980 0.976 0.846 0.00859 0.0249 0.0430
+## 9  1    0.000767 0.978 0.951 0.909 0.0125  0.0370 0.0378</code></pre>
+<pre class="r"><code># plot ROCs
+plot(model_glmnet)</code></pre>
+<p><img src="/post/2017-11-10-how-to-model-using-caret-package-cookbook_files/figure-html/unnamed-chunk-10-1.svg" width="576" /></p>
+<p>By default, the tuning parameters <code>alpha</code> and <code>lamda</code> have three values (<code>tuneLength = 3</code> in <code>train</code> function). Let´s try 20.</p>
+<pre class="r"><code># train glmnet model with tuneLength = 10
+model_glmnet &lt;- train(x = df_x, y = df_y, 
+                   method = &quot;glmnet&quot;,
+                   metric = &quot;ROC&quot;,
+                   tuneLength = 20,
+                   trControl = my_trainControl)</code></pre>
+<pre class="r"><code>model_glmnet$results %&gt;% 
+  as.tibble %&gt;%  
+  arrange(desc(ROC))</code></pre>
+<pre><code>## # A tibble: 400 x 8
+##    alpha lambda   ROC  Sens  Spec   ROCSD SensSD SpecSD
+##    &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;
+##  1 0.1   0.0856 0.988 0.979 0.894 0.00661 0.0212 0.0383
+##  2 0.1   0.0552 0.988 0.975 0.900 0.00643 0.0228 0.0362
+##  3 0.1   0.133  0.988 0.982 0.883 0.00654 0.0219 0.0400
+##  4 0.1   0.206  0.988 0.983 0.865 0.00643 0.0213 0.0353
+##  5 0.1   0.0356 0.987 0.973 0.906 0.00628 0.0238 0.0358
+##  6 0.147 0.0856 0.987 0.978 0.892 0.00647 0.0220 0.0385
+##  7 0.1   0.319  0.987 0.988 0.847 0.00613 0.0171 0.0363
+##  8 0.147 0.133  0.987 0.982 0.881 0.00632 0.0202 0.0402
+##  9 0.147 0.0552 0.987 0.975 0.900 0.00646 0.0235 0.0391
+## 10 0.147 0.206  0.987 0.984 0.858 0.00607 0.0188 0.0376
+## # ... with 390 more rows</code></pre>
+<p>Tha value ~0.990 seems to be the peak we can get without additional tuning.</p>
+<pre class="r"><code># plot ROCs
+plot(model_glmnet)</code></pre>
+<p><img src="/post/2017-11-10-how-to-model-using-caret-package-cookbook_files/figure-html/unnamed-chunk-13-1.svg" width="576" /></p>
+</div>
+<div id="randomforest-model" class="section level2">
+<h2>randomForest model</h2>
+<pre class="r"><code># train randomForest model
+model_randomForest &lt;- train(x = df_x, y = df_y, 
+                            method = &quot;ranger&quot;,
+                            metric = &quot;ROC&quot;,
+                            importance = &quot;permutation&quot;,
+                            tuneLength = 10,
+                            trControl = my_trainControl)
+
+# print model
+model_randomForest</code></pre>
+<pre><code>## Random Forest 
+## 
+## 569 samples
+##  30 predictor
+##   2 classes: &#39;B&#39;, &#39;M&#39; 
+## 
+## No pre-processing
+## Resampling: Bootstrapped (10 reps) 
+## Summary of sample sizes: 57, 57, 57, 58, 57, 57, ... 
+## Resampling results across tuning parameters:
+## 
+##   mtry  splitrule   ROC        Sens       Spec     
+##    2    gini        0.9876972  0.9704301  0.9040893
+##    2    extratrees  0.9889509  0.9779000  0.8894158
+##    5    gini        0.9861303  0.9592249  0.9161505
+##    5    extratrees  0.9890042  0.9722974  0.9014687
+##    8    gini        0.9852358  0.9573586  0.9156269
+##    8    extratrees  0.9885869  0.9694956  0.9082915
+##   11    gini        0.9842910  0.9483505  0.9135327
+##   11    extratrees  0.9884523  0.9682504  0.9130008
+##   14    gini        0.9836172  0.9508224  0.9119620
+##   14    extratrees  0.9880237  0.9657601  0.9124773
+##   17    gini        0.9824189  0.9390114  0.9072554
+##   17    extratrees  0.9878166  0.9654525  0.9129981
+##   20    gini        0.9823010  0.9386980  0.9072554
+##   20    extratrees  0.9872679  0.9610950  0.9145743
+##   23    gini        0.9816791  0.9330876  0.9056848
+##   23    extratrees  0.9870221  0.9604671  0.9156214
+##   26    gini        0.9809439  0.9228246  0.9072554
+##   26    extratrees  0.9869122  0.9614075  0.9103830
+##   30    gini        0.9804157  0.9287253  0.9067236
+##   30    extratrees  0.9867499  0.9570529  0.9124855
+## 
+## Tuning parameter &#39;min.node.size&#39; was held constant at a value of 1
+## ROC was used to select the optimal model using the largest value.
+## The final values used for the model were mtry = 5, splitrule =
+##  extratrees and min.node.size = 1.</code></pre>
+<pre class="r"><code># plot model
+plot(model_randomForest)</code></pre>
+<p><img src="/post/2017-11-10-how-to-model-using-caret-package-cookbook_files/figure-html/unnamed-chunk-14-1.svg" width="576" /></p>
+<pre class="r"><code>model_randomForest$results %&gt;% 
+  as.tibble %&gt;%  
+  arrange(desc(ROC))</code></pre>
+<pre><code>## # A tibble: 20 x 9
+##     mtry min.node.size splitrule    ROC  Sens  Spec   ROCSD SensSD SpecSD
+##    &lt;dbl&gt;         &lt;dbl&gt; &lt;fct&gt;      &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;
+##  1     5             1 extratrees 0.989 0.972 0.901 0.00371 0.0213 0.0328
+##  2     2             1 extratrees 0.989 0.978 0.889 0.00343 0.0181 0.0312
+##  3     8             1 extratrees 0.989 0.969 0.908 0.00314 0.0203 0.0319
+##  4    11             1 extratrees 0.988 0.968 0.913 0.00330 0.0226 0.0330
+##  5    14             1 extratrees 0.988 0.966 0.912 0.00365 0.0259 0.0344
+##  6    17             1 extratrees 0.988 0.965 0.913 0.00320 0.0239 0.0343
+##  7     2             1 gini       0.988 0.970 0.904 0.00318 0.0197 0.0382
+##  8    20             1 extratrees 0.987 0.961 0.915 0.00326 0.0219 0.0319
+##  9    23             1 extratrees 0.987 0.960 0.916 0.00346 0.0244 0.0279
+## 10    26             1 extratrees 0.987 0.961 0.910 0.00348 0.0270 0.0324
+## 11    30             1 extratrees 0.987 0.957 0.912 0.00343 0.0248 0.0346
+## 12     5             1 gini       0.986 0.959 0.916 0.00376 0.0226 0.0342
+## 13     8             1 gini       0.985 0.957 0.916 0.00378 0.0209 0.0369
+## 14    11             1 gini       0.984 0.948 0.914 0.00367 0.0265 0.0377
+## 15    14             1 gini       0.984 0.951 0.912 0.00387 0.0213 0.0356
+## 16    17             1 gini       0.982 0.939 0.907 0.00369 0.0283 0.0379
+## 17    20             1 gini       0.982 0.939 0.907 0.00409 0.0279 0.0381
+## 18    23             1 gini       0.982 0.933 0.906 0.00478 0.0301 0.0420
+## 19    26             1 gini       0.981 0.923 0.907 0.00398 0.0378 0.0376
+## 20    30             1 gini       0.980 0.929 0.907 0.00452 0.0345 0.0352</code></pre>
+<p>Now we can compare top 10 importance variables:</p>
+<pre class="r"><code>plot(varImp(model_glmnet, scale = FALSE), top = 10, main = &quot;glmnet&quot;)</code></pre>
+<p><img src="/post/2017-11-10-how-to-model-using-caret-package-cookbook_files/figure-html/unnamed-chunk-16-1.svg" width="576" /></p>
+<pre class="r"><code>plot(varImp(model_randomForest, scale = FALSE), top = 10, main = &quot;randomForest&quot;)</code></pre>
+<p><img src="/post/2017-11-10-how-to-model-using-caret-package-cookbook_files/figure-html/unnamed-chunk-16-2.svg" width="576" /></p>
+<p>Suprisingly variables quite differs for both models. Any hint why is welcomed:)</p>
+</div>
+<div id="compare-glmnet-and-randomforest-performance" class="section level2">
+<h2>Compare glmnet and randomForest performance</h2>
+<pre class="r"><code>model_list &lt;- list(glmnet = model_glmnet, randomForest = model_randomForest)
+resamples &lt;- resamples(model_list)
+
+# plot the comparison
+bwplot(resamples, metric = &quot;ROC&quot;)</code></pre>
+<p><img src="/post/2017-11-10-how-to-model-using-caret-package-cookbook_files/figure-html/unnamed-chunk-17-1.svg" width="576" /></p>
+<pre class="r"><code># plot the comparison per each fold
+xyplot(resamples, metric = &quot;ROC&quot;)</code></pre>
+<p><img src="/post/2017-11-10-how-to-model-using-caret-package-cookbook_files/figure-html/unnamed-chunk-17-2.svg" width="576" /></p>
+</div>
+</div>
+<div id="conclusion" class="section level1">
+<h1>Conclusion</h1>
+<ul>
+<li>the glmnet seems to fit the data better than randomForest</li>
+<li>even without advanced tuning pretty decent level of accuracy can be achieved</li>
+<li>open points: difference between variable importance of both models</li>
+</ul>
+<p>Thanks for reading. Sure, there is a lot of space for improvements, tweaks. Any kind of feedback is appreciated.</p>
+</div>
