@@ -4,17 +4,12 @@
   
   <url>
     <loc>https://dataplayground.netlify.com/blog/</loc>
-    <lastmod>2019-04-23T00:00:00+00:00</lastmod>
+    <lastmod>2019-01-09T00:00:00+00:00</lastmod>
   </url>
   
   <url>
     <loc>https://dataplayground.netlify.com/</loc>
-    <lastmod>2019-04-23T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://dataplayground.netlify.com/blog/hypothesis-testing-the-basics/</loc>
-    <lastmod>2019-04-23T00:00:00+00:00</lastmod>
+    <lastmod>2019-01-09T00:00:00+00:00</lastmod>
   </url>
   
   <url>
@@ -30,11 +25,6 @@
   <url>
     <loc>https://dataplayground.netlify.com/blog/google-photos-mapping/</loc>
     <lastmod>2018-12-28T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://dataplayground.netlify.com/blog/google-location-history-eda/</loc>
-    <lastmod>2018-12-27T00:00:00+00:00</lastmod>
   </url>
   
   <url>
@@ -55,11 +45,6 @@
   <url>
     <loc>https://dataplayground.netlify.com/blog/image-recognition-ocr-with-tesseract-by-google/</loc>
     <lastmod>2018-11-29T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://dataplayground.netlify.com/blog/digit-recognition-with-tensorflow/</loc>
-    <lastmod>2018-11-19T00:00:00+00:00</lastmod>
   </url>
   
   <url>

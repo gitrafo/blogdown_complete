@@ -6,20 +6,10 @@
     <description>Recent content in Blog on Data playground</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-US</language>
-    <lastBuildDate>Tue, 23 Apr 2019 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Wed, 09 Jan 2019 00:00:00 +0000</lastBuildDate>
     
 	<atom:link href="https://dataplayground.netlify.com/blog/index.xml" rel="self" type="application/rss+xml" />
     
-    
-    <item>
-      <title>Hypothesis testing - the basics</title>
-      <link>https://dataplayground.netlify.com/blog/hypothesis-testing-the-basics/</link>
-      <pubDate>Tue, 23 Apr 2019 00:00:00 +0000</pubDate>
-      
-      <guid>https://dataplayground.netlify.com/blog/hypothesis-testing-the-basics/</guid>
-      <description>library(tidyverse)library(tidytext)library(janeaustenr)2 knihy - střední hodn. (mean), standardní odchylka (sd), rozptyl (variance) délek slov, graficky rozdělení délek slov
-books &amp;lt;- austen_books() %&amp;gt;% group_by(book) %&amp;gt;% group_split()books_word &amp;lt;- books %&amp;gt;% #.[c(1,2)] %&amp;gt;% map(~unnest_tokens(.x, word, text)) %&amp;gt;% map(~.x %&amp;gt;% mutate(word_length = str_length(word))) %&amp;gt;% bind_rows()books_word %&amp;gt;% ggplot(aes(x = word_length)) +geom_histogram() + facet_wrap(~book)## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</description>
-    </item>
     
     <item>
       <title>Purrr´s map and friends - good practise</title>
@@ -50,15 +40,6 @@ Google Takeout is a service for everyone with Google account allowing the users 
       <guid>https://dataplayground.netlify.com/blog/google-photos-mapping/</guid>
       <description>In this post I will demonstrate how to display your Google Photos on a map. As you probably know, most of today´s mobile devices or cameras allow to record GPS position during taking the photos.
 If you are using Google Photos you can leverage Google Takeout for this task. Google Takeout is a service for anyone with Google account allowing the users to download back any previously updated data.</description>
-    </item>
-    
-    <item>
-      <title>Google location history EDA</title>
-      <link>https://dataplayground.netlify.com/blog/google-location-history-eda/</link>
-      <pubDate>Thu, 27 Dec 2018 00:00:00 +0000</pubDate>
-      
-      <guid>https://dataplayground.netlify.com/blog/google-location-history-eda/</guid>
-      <description>library(jsonlite)library(tidyverse)## -- Attaching packages ------------------------------------------------------- tidyverse 1.2.1 --## &amp;lt;U+221A&amp;gt; ggplot2 3.1.0 &amp;lt;U+221A&amp;gt; purrr 0.2.5## &amp;lt;U+221A&amp;gt; tibble 1.4.2 &amp;lt;U+221A&amp;gt; dplyr 0.7.7## &amp;lt;U+221A&amp;gt; tidyr 0.8.2 &amp;lt;U+221A&amp;gt; stringr 1.3.1## &amp;lt;U+221A&amp;gt; readr 1.1.1 &amp;lt;U+221A&amp;gt; forcats 0.3.0## -- Conflicts ---------------------------------------------------------- tidyverse_conflicts() --## x dplyr::filter() masks stats::filter()## x purrr::flatten() masks jsonlite::flatten()## x dplyr::lag() masks stats::lag()df &amp;lt;- fromJSON(&amp;quot;../../static/data/location_history.json&amp;quot;)</description>
     </item>
     
     <item>
@@ -98,16 +79,6 @@ First step - how many pages?As a first step we need to find out on how many pag
       <guid>https://dataplayground.netlify.com/blog/image-recognition-ocr-with-tesseract-by-google/</guid>
       <description>Recently I have read on R weekly post about using image recognition engine by Google tesseract package. This package provides tool for optical character recognition (OCR) - simply allows to retrieve text from images. Tesseract is used for text detection on mobile devices, in video, and in Gmail image spam detection. How cool is that? Let´s try it too.
 library(tidyverse)library(magick)library(tesseract)Sample imageWe need some testing image. I´m curious especially how well it perform on product labels like serial numbers, etc.</description>
-    </item>
-    
-    <item>
-      <title>Digit recognition with TensorFlow</title>
-      <link>https://dataplayground.netlify.com/blog/digit-recognition-with-tensorflow/</link>
-      <pubDate>Mon, 19 Nov 2018 00:00:00 +0000</pubDate>
-      
-      <guid>https://dataplayground.netlify.com/blog/digit-recognition-with-tensorflow/</guid>
-      <description>Introduction myself to machine learing with Keras / TensorFlow. This post is based on R Studio Keras blog tutorial
-What is what?Keras = high-level neural networks API for TensorFlow written in PythonTensorFlow = Python-friendly open source library for numerical computationAnaconda = Python distribution (platform for data science)Ok, Python, Python, Python - I think I´ll need Python:) to be installed besides R package Keras. It will not be that easy.</description>
     </item>
     
     <item>
