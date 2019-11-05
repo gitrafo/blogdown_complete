@@ -1,0 +1,72 @@
+---
+title: Loading multiple *.csv (*.xlsx) effectively
+author: Petr Schönbauer
+date: '2017-03-08'
+slug: loading-multiple-csv-xlsx-effectively
+categories: []
+tags:
+  - ggplot2
+  - map
+  - R
+description: Desc
+hacker_news_id: ''
+lobsters_id: ''
+meta_img: /images/image.jpg
+draft: true
+---
+
+This brief post is a "how to" load multiple `csv` / `xlsx` files into single data frame. Say, we have a couple of *.xlsx files in one folder (some of them in sub-directories) and we would like to bind them all into one. Quite common task. Let´s do it:)
+
+```{r, message=FALSE}
+library(tidyverse)
+library(readxl)
+```
+
+# Step 1
+`list.files` function with argument `full.names = TRUE` (preserving complete path to all files) and argument `recursive = TRUE` is handy in case your files are in any level of sub-directories (represented with "next_level" folder in my case).
+
+```{r}
+x <- list.files(path = "../../static/data/multiple", full.names = TRUE, recursive = TRUE, pattern = "*.xlsx")
+x
+```
+
+Now I have the `x` vector with all full paths to all "*.xlsx" files.
+
+# Step 2
+`map` the vector of paths to function `read_excel`. Use argument `sheets` to specify the name of the sheet.
+
+```{r}
+lst <- map(x, read_excel, sheet = "Value Assessment")
+head(lst[[1]])
+```
+
+These are first 5 records of first file.
+
+# Step 3
+Use `bind_rows` to bind the list into one tibble (data frame). Argument `.id` allows you to create a column with the name of source file.
+
+```{r}
+df <- bind_rows(lst, .id = "filename")
+head(df)
+```
+
+# Pipe pipe pipe
+
+Let´s pipe all these steps into single chunk of code.
+
+```{r}
+list.files(path = "../../static/data/multiple", full.names = TRUE, recursive = TRUE, pattern = "*.xlsx") %>% 
+  map(read_excel, sheet = "Value Assessment") %>% 
+  bind_rows(.id = "filename") %>% 
+  head
+```
+
+Actually, you can reduce it to two lines using `map_df`:)
+
+```{r}
+list.files(path = "../../static/data/multiple", full.names = TRUE, recursive = TRUE, pattern = "*.xlsx") %>% 
+  map_df(~read_excel(., sheet = "Value Assessment"), .id = "filename") %>% 
+  head
+```
+
+Pipes are cool, makes your life easier. Two lines of code, but very powerfull;)

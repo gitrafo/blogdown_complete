@@ -1,9 +1,9 @@
-baseurl = "https://dataplayground.netlify.com/"
+baseurl = "/"
 languageCode = "en-us"
-title = "Data playground"
+title = "A Hugo website"
 theme = "hugo-lithium"
-disqusshortname = "dataplayground"
-googleAnalytics = "UA-5171547-2"
+googleAnalytics = ""
+disqusShortname = ""
 ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$"]
 
 [permalinks]
@@ -13,8 +13,11 @@ ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$"]
     name = "About"
     url = "/about/"
 [[menu.main]]
-    name = "Linkedin"
-    url = "https://www.linkedin.com/in/schonbauer-petr"
+    name = "GitHub"
+    url = "https://github.com/rstudio/blogdown"
+[[menu.main]]
+    name = "Twitter"
+    url = "https://twitter.com/rstudio"
 
 [params]
     description = "A website built through Hugo and blogdown."
@@ -29,7 +32,7 @@ ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$"]
     MathJaxVersion = "2.7.5"
 
     # path to the favicon, under "static"
-    favicon = "my_banner.png"
+    favicon = "favicon.ico"
 
     [params.logo]
     url = "logo.png"
