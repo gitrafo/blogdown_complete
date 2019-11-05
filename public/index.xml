@@ -2,31 +2,31 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Data playground</title>
-    <link>/</link>
+    <link>https://dataplayground.netlify.com/</link>
     <description>Recent content on Data playground</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-US</language>
     <lastBuildDate>Tue, 23 Apr 2019 00:00:00 +0000</lastBuildDate>
     
-	<atom:link href="/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="https://dataplayground.netlify.com/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
       <title>Hypothesis testing - the basics</title>
-      <link>/blog/hypothesis-testing-the-basics/</link>
+      <link>https://dataplayground.netlify.com/blog/hypothesis-testing-the-basics/</link>
       <pubDate>Tue, 23 Apr 2019 00:00:00 +0000</pubDate>
       
-      <guid>/blog/hypothesis-testing-the-basics/</guid>
+      <guid>https://dataplayground.netlify.com/blog/hypothesis-testing-the-basics/</guid>
       <description>library(tidyverse)library(tidytext)library(janeaustenr)2 knihy - střední hodn. (mean), standardní odchylka (sd), rozptyl (variance) délek slov, graficky rozdělení délek slov
 books &amp;lt;- austen_books() %&amp;gt;% group_by(book) %&amp;gt;% group_split()books_word &amp;lt;- books %&amp;gt;% #.[c(1,2)] %&amp;gt;% map(~unnest_tokens(.x, word, text)) %&amp;gt;% map(~.x %&amp;gt;% mutate(word_length = str_length(word))) %&amp;gt;% bind_rows()books_word %&amp;gt;% ggplot(aes(x = word_length)) +geom_histogram() + facet_wrap(~book)## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</description>
     </item>
     
     <item>
       <title>Purrr´s map and friends - good practise</title>
-      <link>/blog/purrr-s-map-and-friends-good-practise/</link>
+      <link>https://dataplayground.netlify.com/blog/purrr-s-map-and-friends-good-practise/</link>
       <pubDate>Wed, 09 Jan 2019 00:00:00 +0000</pubDate>
       
-      <guid>/blog/purrr-s-map-and-friends-good-practise/</guid>
+      <guid>https://dataplayground.netlify.com/blog/purrr-s-map-and-friends-good-practise/</guid>
       <description>This post is my personal reference for functional programming with purrr package. I often find myself to search on google/stackoverflow “how to” iterate over this and that so it make sense to put it together somewhere. This post is vastly based on brilliant Jenny Bryan´s purrr tutorial and focus on nested lists / list-columns.
 library(repurrrsive)library(tidyverse)Two datasets from repurrrsive package to practise on:
 got_char Game of Thrones characters dataset.</description>
@@ -34,125 +34,125 @@ library(repurrrsive)library(tidyverse)Two datasets from repurrrsive package to
     
     <item>
       <title>Google Takeout - missing photos? Download them on your own.</title>
-      <link>/blog/google-takeout-missing-photos-download-them-on-your-own/</link>
+      <link>https://dataplayground.netlify.com/blog/google-takeout-missing-photos-download-them-on-your-own/</link>
       <pubDate>Sat, 05 Jan 2019 00:00:00 +0000</pubDate>
       
-      <guid>/blog/google-takeout-missing-photos-download-them-on-your-own/</guid>
+      <guid>https://dataplayground.netlify.com/blog/google-takeout-missing-photos-download-them-on-your-own/</guid>
       <description>Recently I decided to use Google´s Photos app to manage all my photos. My collection is about ~7000 photos so it took me some time to create the albums and organize it. My intention was to do a back up from time to time using Google Takeout to keep the photos backed-up outside cloud as well.
 Google Takeout is a service for everyone with Google account allowing the users to download back any previously updated data.</description>
     </item>
     
     <item>
       <title>Google Photos mapping using leaflet</title>
-      <link>/blog/google-photos-mapping/</link>
+      <link>https://dataplayground.netlify.com/blog/google-photos-mapping/</link>
       <pubDate>Fri, 28 Dec 2018 00:00:00 +0000</pubDate>
       
-      <guid>/blog/google-photos-mapping/</guid>
+      <guid>https://dataplayground.netlify.com/blog/google-photos-mapping/</guid>
       <description>In this post I will demonstrate how to display your Google Photos on a map. As you probably know, most of today´s mobile devices or cameras allow to record GPS position during taking the photos.
 If you are using Google Photos you can leverage Google Takeout for this task. Google Takeout is a service for anyone with Google account allowing the users to download back any previously updated data.</description>
     </item>
     
     <item>
       <title>Google location history EDA</title>
-      <link>/blog/google-location-history-eda/</link>
+      <link>https://dataplayground.netlify.com/blog/google-location-history-eda/</link>
       <pubDate>Thu, 27 Dec 2018 00:00:00 +0000</pubDate>
       
-      <guid>/blog/google-location-history-eda/</guid>
+      <guid>https://dataplayground.netlify.com/blog/google-location-history-eda/</guid>
       <description>library(jsonlite)library(tidyverse)## -- Attaching packages ------------------------------------------------------- tidyverse 1.2.1 --## &amp;lt;U+221A&amp;gt; ggplot2 3.1.0 &amp;lt;U+221A&amp;gt; purrr 0.2.5## &amp;lt;U+221A&amp;gt; tibble 1.4.2 &amp;lt;U+221A&amp;gt; dplyr 0.7.7## &amp;lt;U+221A&amp;gt; tidyr 0.8.2 &amp;lt;U+221A&amp;gt; stringr 1.3.1## &amp;lt;U+221A&amp;gt; readr 1.1.1 &amp;lt;U+221A&amp;gt; forcats 0.3.0## -- Conflicts ---------------------------------------------------------- tidyverse_conflicts() --## x dplyr::filter() masks stats::filter()## x purrr::flatten() masks jsonlite::flatten()## x dplyr::lag() masks stats::lag()df &amp;lt;- fromJSON(&amp;quot;../../static/data/location_history.json&amp;quot;)</description>
     </item>
     
     <item>
       <title>Temperature change in Czech Republic - part II</title>
-      <link>/blog/temperature-change-in-czech-republic-part-ii/</link>
+      <link>https://dataplayground.netlify.com/blog/temperature-change-in-czech-republic-part-ii/</link>
       <pubDate>Tue, 18 Dec 2018 00:00:00 +0000</pubDate>
       
-      <guid>/blog/temperature-change-in-czech-republic-part-ii/</guid>
+      <guid>https://dataplayground.netlify.com/blog/temperature-change-in-czech-republic-part-ii/</guid>
       <description>library(tidyverse)library(broom)library(lubridate)library(scales)df_prec_raw &amp;lt;- readRDS(&amp;quot;../../static/data/chmu_srazky.rds&amp;quot;)df_temp_raw &amp;lt;- readRDS(&amp;quot;../../static/data/chmu_teploty.rds&amp;quot;)df_prec_raw## # A tibble: 9,744 x 5## year_month year month region precipitation## &amp;lt;dttm&amp;gt; &amp;lt;chr&amp;gt; &amp;lt;chr&amp;gt; &amp;lt;chr&amp;gt; &amp;lt;dbl&amp;gt;## 1 1961-01-01 00:00:00 1961 Jan Česká republika 22## 2 1961-01-01 00:00:00 1961 Jan Praha a Středočeský 15## 3 1961-01-01 00:00:00 1961 Jan Jihočeský 14## 4 1961-01-01 00:00:00 1961 Jan Plzeňský 22## 5 1961-01-01 00:00:00 1961 Jan Karlovarský 39## 6 1961-01-01 00:00:00 1961 Jan Ústecký 23## 7 1961-01-01 00:00:00 1961 Jan Liberecký 41## 8 1961-01-01 00:00:00 1961 Jan Královéhradecký 38## 9 1961-01-01 00:00:00 1961 Jan Pardubický 21## 10 1961-01-01 00:00:00 1961 Jan Vysočina 16## # .</description>
     </item>
     
     <item>
       <title>Temperature change in Czech Republic - part I</title>
-      <link>/blog/temperature-change-in-czech-republic-part-i/</link>
+      <link>https://dataplayground.netlify.com/blog/temperature-change-in-czech-republic-part-i/</link>
       <pubDate>Sat, 15 Dec 2018 00:00:00 +0000</pubDate>
       
-      <guid>/blog/temperature-change-in-czech-republic-part-i/</guid>
+      <guid>https://dataplayground.netlify.com/blog/temperature-change-in-czech-republic-part-i/</guid>
       <description>There is some discussion in local news regarding decrease of precipitation and increase of temperature over last decades, however I haven´t seen single proof of these claims. The goal of this post is to get relevant data and check the trend.
 library(tidyverse)library(rvest)library(lubridate)library(RSelenium)library(scales)No open data? - scrap itI thought our institutions are more open in providing wheater data (temperature and precipitation) so I was disappointed finding out the only option to get monthly data is to scrap it.</description>
     </item>
     
     <item>
       <title>What is the current value of my car? (web scrape basics)</title>
-      <link>/blog/web-scraping-basics-what-is-the-current-value-of-my-car/</link>
+      <link>https://dataplayground.netlify.com/blog/web-scraping-basics-what-is-the-current-value-of-my-car/</link>
       <pubDate>Mon, 10 Dec 2018 00:00:00 +0000</pubDate>
       
-      <guid>/blog/web-scraping-basics-what-is-the-current-value-of-my-car/</guid>
+      <guid>https://dataplayground.netlify.com/blog/web-scraping-basics-what-is-the-current-value-of-my-car/</guid>
       <description>library(tidyverse)library(rvest)library(httr)library(scales)library(broom)I was wondering what is the current price of my car on the market. One way how to get some at least bit objective value is based on current situation on the market. I´m about to use simple (yet effective) web scraping technique to retrieve data from local best known internet car marketplace.
 First step - how many pages?As a first step we need to find out on how many pages are the offers related to the same type of my car.</description>
     </item>
     
     <item>
       <title>Image recognition (OCR) with Tesseract by Google</title>
-      <link>/blog/image-recognition-ocr-with-tesseract-by-google/</link>
+      <link>https://dataplayground.netlify.com/blog/image-recognition-ocr-with-tesseract-by-google/</link>
       <pubDate>Thu, 29 Nov 2018 00:00:00 +0000</pubDate>
       
-      <guid>/blog/image-recognition-ocr-with-tesseract-by-google/</guid>
+      <guid>https://dataplayground.netlify.com/blog/image-recognition-ocr-with-tesseract-by-google/</guid>
       <description>Recently I have read on R weekly post about using image recognition engine by Google tesseract package. This package provides tool for optical character recognition (OCR) - simply allows to retrieve text from images. Tesseract is used for text detection on mobile devices, in video, and in Gmail image spam detection. How cool is that? Let´s try it too.
 library(tidyverse)library(magick)library(tesseract)Sample imageWe need some testing image. I´m curious especially how well it perform on product labels like serial numbers, etc.</description>
     </item>
     
     <item>
       <title>Digit recognition with TensorFlow</title>
-      <link>/blog/digit-recognition-with-tensorflow/</link>
+      <link>https://dataplayground.netlify.com/blog/digit-recognition-with-tensorflow/</link>
       <pubDate>Mon, 19 Nov 2018 00:00:00 +0000</pubDate>
       
-      <guid>/blog/digit-recognition-with-tensorflow/</guid>
+      <guid>https://dataplayground.netlify.com/blog/digit-recognition-with-tensorflow/</guid>
       <description>Introduction myself to machine learing with Keras / TensorFlow. This post is based on R Studio Keras blog tutorial
 What is what?Keras = high-level neural networks API for TensorFlow written in PythonTensorFlow = Python-friendly open source library for numerical computationAnaconda = Python distribution (platform for data science)Ok, Python, Python, Python - I think I´ll need Python:) to be installed besides R package Keras. It will not be that easy.</description>
     </item>
     
     <item>
       <title>Resting heart rate trend from Samsung Health app data</title>
-      <link>/blog/resting-heart-rate-trend-from-samsung-health-app-data/</link>
+      <link>https://dataplayground.netlify.com/blog/resting-heart-rate-trend-from-samsung-health-app-data/</link>
       <pubDate>Sat, 03 Nov 2018 00:00:00 +0000</pubDate>
       
-      <guid>/blog/resting-heart-rate-trend-from-samsung-health-app-data/</guid>
+      <guid>https://dataplayground.netlify.com/blog/resting-heart-rate-trend-from-samsung-health-app-data/</guid>
       <description>I have started to run a bit about two month ago and a I was told the good way to track your fitness level and to train is to monitor your heart rate and to run according to heart rate zones. So I did some “research” and bought fitness tracker from Samsung. In order to set-up heart rate zones you need to know your resting heart rate and your max heart rate.</description>
     </item>
     
     <item>
       <title>How to model using caret package - cookbook</title>
-      <link>/blog/how-to-model-using-caret-package-cookbook/</link>
+      <link>https://dataplayground.netlify.com/blog/how-to-model-using-caret-package-cookbook/</link>
       <pubDate>Fri, 10 Nov 2017 00:00:00 +0000</pubDate>
       
-      <guid>/blog/how-to-model-using-caret-package-cookbook/</guid>
+      <guid>https://dataplayground.netlify.com/blog/how-to-model-using-caret-package-cookbook/</guid>
       <description>Data wranglingLoad data, remove redundat variablesSummary of dataModelsCreate common validation indicies, trainControlglmnet modelrandomForest modelCompare glmnet and randomForest performanceConclusionHello. Purpose of this post is to share and learn basics of modeling, sort of a simple “cookbook” how to apply several type of models (glmnet and random forest in this case) on the same train/test splits using caret package, evaluate and compare its performance.</description>
     </item>
     
     <item>
       <title>Top 20 movies based on IMDB scores</title>
-      <link>/blog/top-20-movies-based-on-imdb-scores/</link>
+      <link>https://dataplayground.netlify.com/blog/top-20-movies-based-on-imdb-scores/</link>
       <pubDate>Sun, 10 Sep 2017 00:00:00 +0000</pubDate>
       
-      <guid>/blog/top-20-movies-based-on-imdb-scores/</guid>
+      <guid>https://dataplayground.netlify.com/blog/top-20-movies-based-on-imdb-scores/</guid>
       <description># load librarieslibrary(tidyverse)library(stringr)library(shiny)Basic data wrangling firstLoad and check the data structure# load dataraw &amp;lt;- read_csv(&amp;quot;../../static/data/movie_data.csv&amp;quot;)# structure of dataglimpse(raw)## Observations: 5,043## Variables: 28## $ color &amp;lt;chr&amp;gt; &amp;quot;Color&amp;quot;, &amp;quot;Color&amp;quot;, &amp;quot;Color&amp;quot;, &amp;quot;Color&amp;quot;, ...## $ director_name &amp;lt;chr&amp;gt; &amp;quot;James Cameron&amp;quot;, &amp;quot;Gore Verbinski&amp;quot;, &amp;quot;...## $ num_critic_for_reviews &amp;lt;dbl&amp;gt; 723, 302, 602, 813, NA, 462, 392, 32...## $ duration &amp;lt;dbl&amp;gt; 178, 169, 148, 164, NA, 132, 156, 10.</description>
     </item>
     
     <item>
       <title>Loading multiple *.csv (*.xlsx) effectively</title>
-      <link>/blog/loading-multiple-csv-xlsx-effectively/</link>
+      <link>https://dataplayground.netlify.com/blog/loading-multiple-csv-xlsx-effectively/</link>
       <pubDate>Wed, 08 Mar 2017 00:00:00 +0000</pubDate>
       
-      <guid>/blog/loading-multiple-csv-xlsx-effectively/</guid>
+      <guid>https://dataplayground.netlify.com/blog/loading-multiple-csv-xlsx-effectively/</guid>
       <description>This brief post is a “how to” load multiple csv / xlsx files into single data frame. Say, we have a couple of *.xlsx files in one folder (some of them in sub-directories) and we would like to bind them all into one. Quite common task. Let´s do it:)
 library(tidyverse)library(readxl)Step 1list.files function with argument full.names = TRUE (preserving complete path to all files) and argument recursive = TRUE is handy in case your files are in any level of sub-directories (represented with “next_level” folder in my case).</description>
     </item>
     
     <item>
       <title>About</title>
-      <link>/about/</link>
+      <link>https://dataplayground.netlify.com/about/</link>
       <pubDate>Thu, 05 May 2016 21:48:51 -0700</pubDate>
       
-      <guid>/about/</guid>
+      <guid>https://dataplayground.netlify.com/about/</guid>
       <description>Hi, I´m Petr. This blog is my playground with data. I realized recently Í´m still looking for the same analytics / scripting technics and perhaps would make sense to capture it somewhere - and the blog was born.
 Listen / read / talk and forget; write and remember. - Yihui Xie
 Thanks to Yihui Xie and his colleagues for blogdown package making this blog possible.
@@ -161,19 +161,19 @@ Thanks to Hadley Wickham and his colleagues for tidyverse making the scripts pos
     
     <item>
       <title>Home</title>
-      <link>/home/</link>
+      <link>https://dataplayground.netlify.com/home/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
-      <guid>/home/</guid>
+      <guid>https://dataplayground.netlify.com/home/</guid>
       <description></description>
     </item>
     
     <item>
       <title>License</title>
-      <link>/license/</link>
+      <link>https://dataplayground.netlify.com/license/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
-      <guid>/license/</guid>
+      <guid>https://dataplayground.netlify.com/license/</guid>
       <description> Copyright &amp;copy; 2019 Petr Schönbauer
  </description>
     </item>
