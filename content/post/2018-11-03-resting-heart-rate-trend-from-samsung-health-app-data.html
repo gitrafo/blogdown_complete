@@ -1,0 +1,129 @@
+---
+title: "Resting heart rate trend from Samsung Health app data"
+author: "Petr Schönbauer"
+date: "2018-11-03"
+slug: resting-heart-rate-trend-from-samsung-health-app-data
+categories: []
+tags:
+  - R
+  - ggplot2
+---
+
+
+
+<p>I have started to run a bit about two month ago and a I was told the good way to track your fitness level and to train is to monitor your heart rate and to run according to <code>heart rate zones</code>. So I did some “research” and bought fitness tracker from Samsung. In order to set-up heart rate zones you need to know your <code>resting heart rate</code> and your <code>max heart rate</code>. The latter is (as the name suggests) the maximum possible heart rate of you heart. You can google on your own many examples of how to find out your value. Basically all of them are about to put your body into high stress (like hill running) and then check the maximum recorded value.</p>
+<p>I´ll try to explore the <code>resting heart rate</code> from my fitness tracker data. <code>Resting heart rate</code> is described usually as the heart rate right after you wake up in the morning. Not quite exact description, but let´s check what we can get from raw data.</p>
+<div id="load-data" class="section level2">
+<h2>Load data</h2>
+<p>There is potentially cool function in Samsung´s health app to view trends of your heart rate, however not as useuful as one would expect - we will explore it later. The good news is Samsung allows to export the data right from the app´s options (unfortunately only last three months). Not great, but better than nothing. Let´s explore them:)</p>
+<p><img src="/img/shealth_app_screeenshot.PNG" style="width:70.0%" />
+<img src="/img/shealth_app_screeenshot_2.PNG" style="width:70.0%" /></p>
+<pre class="r"><code>library(tidyverse)
+library(lubridate)
+library(readxl)</code></pre>
+<pre class="r"><code>df_raw &lt;- read_excel(&quot;../../static/data/heart_rate.xls&quot;, skip = 8)
+df_raw %&gt;% glimpse()</code></pre>
+<pre><code>## Observations: 1,211
+## Variables: 5
+## $ Date               &lt;chr&gt; &quot;30 Oct&quot;, &quot;30 Oct&quot;, &quot;30 Oct&quot;, &quot;30 Oct&quot;, &quot;30...
+## $ Time               &lt;chr&gt; &quot;21:10&quot;, &quot;20:50&quot;, &quot;20:40&quot;, &quot;20:30&quot;, &quot;20:20&quot;...
+## $ `Heart rate (bpm)` &lt;chr&gt; &quot;69&quot;, &quot;73&quot;, &quot;69&quot;, &quot;69&quot;, &quot;69&quot;, &quot;76&quot;, &quot;91&quot;, &quot;...
+## $ Tag                &lt;chr&gt; &quot;Resting&quot;, &quot;Resting&quot;, &quot;Resting&quot;, &quot;General&quot;,...
+## $ Notes              &lt;lgl&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA,...</code></pre>
+<p>I can use <code>lubridate</code> package and create one variable <code>DateTime</code> from <code>Date</code> and <code>Time</code>. It will make life easier for extracting minutes and hours later on.</p>
+<pre class="r"><code>df_clean &lt;- df_raw %&gt;% 
+  mutate(DateTime = ydm_hm(paste(&quot;2018&quot;, Date, Time))) %&gt;% 
+  rename(HeartRate = `Heart rate (bpm)`) %&gt;%
+  select(DateTime, HeartRate, Tag, -Date, -Time, -Notes) %&gt;% 
+  mutate(HeartRate = HeartRate %&gt;% as.numeric())
+head(df_clean)</code></pre>
+<pre><code>## # A tibble: 6 x 3
+##   DateTime            HeartRate Tag    
+##   &lt;dttm&gt;                  &lt;dbl&gt; &lt;chr&gt;  
+## 1 2018-10-30 21:10:00        69 Resting
+## 2 2018-10-30 20:50:00        73 Resting
+## 3 2018-10-30 20:40:00        69 Resting
+## 4 2018-10-30 20:30:00        69 General
+## 5 2018-10-30 20:20:00        69 Resting
+## 6 2018-10-30 19:50:00        76 Resting</code></pre>
+<p>How many samples is available per “Tag”?</p>
+<pre class="r"><code>df_clean %&gt;% 
+  count(Tag, sort = TRUE)</code></pre>
+<pre><code>## # A tibble: 6 x 2
+##   Tag                n
+##   &lt;chr&gt;          &lt;int&gt;
+## 1 Resting          752
+## 2 General          452
+## 3 &lt;NA&gt;               3
+## 4 Exercising         2
+## 5 After exercise     1
+## 6 Tired              1</code></pre>
+<p>Well, this tells me something. First of all Samsung do not provide the raw data recorded during excerices (<code>Excersising</code> tag). Just two values? Really? After several running and swimming workouts it is strange. It raises a question why there is such tag? Secondly, <code>Resting</code> and <code>General</code> tags seems to be worth to check. What does the “general” actually mean?</p>
+<pre class="r"><code>df_clean %&gt;% 
+  filter(Tag %in% c(&quot;General&quot;, &quot;Resting&quot;)) %&gt;% 
+  ggplot(aes(DateTime, HeartRate)) + 
+  geom_point() +
+  geom_smooth() +
+  labs(y = &quot;heart rate [bpm]&quot;, x = &quot;date&quot;) +
+  facet_wrap(~Tag, labeller = label_both)</code></pre>
+<pre><code>## `geom_smooth()` using method = &#39;loess&#39; and formula &#39;y ~ x&#39;</code></pre>
+<p><img src="/post/2018-11-03-resting-heart-rate-trend-from-samsung-health-app-data_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<p>Interesting what Samsung consider as “Resting” :) I´m either having some problem with my heart or the app misclassify the measurements. The latter seems to be more likely as I wouldn´t feel much resting with heart beats over 80:). Or perhaps those are some measurement after workout. Let´s check how looks the distribution per hour.</p>
+<pre class="r"><code>df_clean %&gt;% 
+  filter(Tag %in% c(&quot;Resting&quot;, &quot;General&quot;)) %&gt;% 
+  mutate(hour = hour(DateTime),
+         minute = minute(DateTime)) %&gt;% 
+  count(Tag, hour) %&gt;% 
+  ggplot(aes(hour,n)) +
+  geom_col() + 
+  scale_x_continuous(breaks = scales::pretty_breaks(n = 10)) +
+  labs(y = &quot;number of measurements&quot;, x = &quot;hour&quot;) +
+  facet_wrap(~Tag, labeller = label_both)</code></pre>
+<p><img src="/post/2018-11-03-resting-heart-rate-trend-from-samsung-health-app-data_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+<p>Most of the <code>Resting</code> tags comes from sleeping time ~(22:00 - 06:00) and it quite fits. The <code>General</code> tag is somehow not clear to me - I don´t understand why there isn´t less measurements in night time. I mean, when I´m sleeping, I´m resting, right?:)</p>
+<p>What is the proportion of <code>General</code> and <code>Resting</code> during my usual sleeping hours?</p>
+<pre class="r"><code>df_clean %&gt;% 
+  mutate(hour = hour(DateTime),
+         minute = minute(DateTime)) %&gt;% 
+  filter(hour %in% c(23, 0:5)) %&gt;% 
+  count(Tag)</code></pre>
+<pre><code>## # A tibble: 2 x 2
+##   Tag         n
+##   &lt;chr&gt;   &lt;int&gt;
+## 1 General   120
+## 2 Resting   429</code></pre>
+<p>Ok, here I would expect something close to zero for <code>General</code> tag. In my case ~28% is misclassified as <code>General</code> instead of correct <code>Resting</code>.</p>
+</div>
+<div id="so-what-is-my-resting-heart-rate" class="section level1">
+<h1>So what is my <code>resting heart rate</code>?</h1>
+<p>It seems we can´t trust to app´s internal tagging. But we can trust our own code:). Let´s forget about internal tagging logic and simply filter sleeping hours and working days only out of all data - this should be the window when I´m definately sleeping. Furthermore just the wake-up time and calculate the value out of it.</p>
+<pre class="r"><code>df_clean %&gt;% 
+  mutate(hour = hour(DateTime),
+         minute = minute(DateTime),
+         wday = wday(DateTime, label = TRUE)) %&gt;% 
+  filter(!(wday %in% c(&quot;Sat&quot;, &quot;Sun&quot;))) %&gt;% 
+  filter(hour %in% c(0:5)) %&gt;% 
+  ggplot(aes(DateTime, HeartRate)) + 
+  geom_point() +
+  geom_smooth(method = &quot;lm&quot;) +
+  labs(y = &quot;number of measurements&quot;, x = &quot;date&quot;, title = &quot;Heart rate during sleep&quot;) +
+  scale_y_continuous(breaks = scales::pretty_breaks(n = 10))</code></pre>
+<p><img src="/post/2018-11-03-resting-heart-rate-trend-from-samsung-health-app-data_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
+<p>Cool, it seems that running really have some effect on <code>resting heart rate</code>. In this case it is more “sleeping heart rate”. We can see some decreasing trend from ~60 to ~50 bpm over one month.</p>
+</div>
+<div id="so-where-is-the-single-value" class="section level1">
+<h1>So where is the single value?</h1>
+<pre class="r"><code>df_clean %&gt;% 
+  mutate(hour = hour(DateTime),
+         minute = minute(DateTime),
+         wday = wday(DateTime, label = TRUE)) %&gt;% 
+  filter(!(wday %in% c(&quot;Sat&quot;, &quot;Sun&quot;))) %&gt;% 
+  filter(hour == 5) %&gt;%  
+  filter(minute &gt; 20 &amp; minute &lt; 40) %&gt;% 
+  .$HeartRate %&gt;%
+  mean</code></pre>
+<pre><code>## [1] 59.8</code></pre>
+<p>Considering my usual wake-up time window my <code>resting heart rate</code> is ~60bmp.</p>
+<p>The message for me is not to take the internal tagging logic of Samsung´s app seriously. I will re-run the script once collect more data - that´s cool about scripting:)</p>
+<p>Hope you liked this post:).</p>
+</div>
