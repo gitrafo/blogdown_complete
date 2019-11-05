@@ -1,0 +1,164 @@
+---
+title: Temperature change in Czech Republic - part II
+author: Petr Schönbauer
+date: '2018-12-18'
+slug: temperature-change-in-czech-republic-part-ii
+categories: []
+tags:
+  - broom
+---
+
+
+
+<pre class="r"><code>library(tidyverse)
+library(broom)
+library(lubridate)
+library(scales)</code></pre>
+<pre class="r"><code>df_prec_raw &lt;- readRDS(&quot;../../static/data/chmu_srazky.rds&quot;)
+df_temp_raw &lt;- readRDS(&quot;../../static/data/chmu_teploty.rds&quot;)</code></pre>
+<pre class="r"><code>df_prec_raw</code></pre>
+<pre><code>## # A tibble: 9,744 x 5
+##    year_month          year  month region              precipitation
+##    &lt;dttm&gt;              &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;                       &lt;dbl&gt;
+##  1 1961-01-01 00:00:00 1961  Jan   Česká republika                22
+##  2 1961-01-01 00:00:00 1961  Jan   Praha a Středočeský            15
+##  3 1961-01-01 00:00:00 1961  Jan   Jihočeský                      14
+##  4 1961-01-01 00:00:00 1961  Jan   Plzeňský                       22
+##  5 1961-01-01 00:00:00 1961  Jan   Karlovarský                    39
+##  6 1961-01-01 00:00:00 1961  Jan   Ústecký                        23
+##  7 1961-01-01 00:00:00 1961  Jan   Liberecký                      41
+##  8 1961-01-01 00:00:00 1961  Jan   Královéhradecký                38
+##  9 1961-01-01 00:00:00 1961  Jan   Pardubický                     21
+## 10 1961-01-01 00:00:00 1961  Jan   Vysočina                       16
+## # ... with 9,734 more rows</code></pre>
+<pre class="r"><code>df_temp_raw</code></pre>
+<pre><code>## # A tibble: 9,744 x 5
+##    year_month          year  month region              temperature
+##    &lt;dttm&gt;              &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;                     &lt;dbl&gt;
+##  1 1961-01-01 00:00:00 1961  Jan   Česká republika            -3.4
+##  2 1961-01-01 00:00:00 1961  Jan   Praha a Středočeský        -2.8
+##  3 1961-01-01 00:00:00 1961  Jan   Jihočeský                  -3.9
+##  4 1961-01-01 00:00:00 1961  Jan   Plzeňský                   -3.2
+##  5 1961-01-01 00:00:00 1961  Jan   Karlovarský                -3.4
+##  6 1961-01-01 00:00:00 1961  Jan   Ústecký                    -3.4
+##  7 1961-01-01 00:00:00 1961  Jan   Liberecký                  -3.7
+##  8 1961-01-01 00:00:00 1961  Jan   Královéhradecký            -3.3
+##  9 1961-01-01 00:00:00 1961  Jan   Pardubický                 -3.4
+## 10 1961-01-01 00:00:00 1961  Jan   Vysočina                   -3.9
+## # ... with 9,734 more rows</code></pre>
+<p>Merge both dataset together. Check if relevant columns are identical first.</p>
+<pre class="r"><code>map2(df_prec_raw, df_temp_raw, identical)</code></pre>
+<pre><code>## $year_month
+## [1] TRUE
+## 
+## $year
+## [1] TRUE
+## 
+## $month
+## [1] TRUE
+## 
+## $region
+## [1] TRUE
+## 
+## $precipitation
+## [1] FALSE</code></pre>
+<pre class="r"><code>df &lt;- bind_cols(df_prec_raw, df_temp_raw) %&gt;% 
+  select(year_month, year, month, region, temperature, precipitation) %&gt;% 
+  gather(key, value, -year_month, -year, -month, -region) %&gt;% 
+  mutate(season = case_when(
+    str_detect(month, &quot;Dec|Jan|Feb&quot;) ~ &quot;Winter&quot;,
+    str_detect(month, &quot;Mar|Apr|May&quot;) ~ &quot;Spring&quot;,
+    str_detect(month, &quot;Jun|Jul|Aug&quot;) ~ &quot;Autumn&quot;,
+    str_detect(month, &quot;Sep|Oct|Nov&quot;) ~ &quot;Summer&quot;))
+df</code></pre>
+<pre><code>## # A tibble: 19,488 x 7
+##    year_month          year  month region            key       value season
+##    &lt;dttm&gt;              &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;             &lt;chr&gt;     &lt;dbl&gt; &lt;chr&gt; 
+##  1 1961-01-01 00:00:00 1961  Jan   Česká republika   temperat~  -3.4 Winter
+##  2 1961-01-01 00:00:00 1961  Jan   Praha a Středoče~ temperat~  -2.8 Winter
+##  3 1961-01-01 00:00:00 1961  Jan   Jihočeský         temperat~  -3.9 Winter
+##  4 1961-01-01 00:00:00 1961  Jan   Plzeňský          temperat~  -3.2 Winter
+##  5 1961-01-01 00:00:00 1961  Jan   Karlovarský       temperat~  -3.4 Winter
+##  6 1961-01-01 00:00:00 1961  Jan   Ústecký           temperat~  -3.4 Winter
+##  7 1961-01-01 00:00:00 1961  Jan   Liberecký         temperat~  -3.7 Winter
+##  8 1961-01-01 00:00:00 1961  Jan   Královéhradecký   temperat~  -3.3 Winter
+##  9 1961-01-01 00:00:00 1961  Jan   Pardubický        temperat~  -3.4 Winter
+## 10 1961-01-01 00:00:00 1961  Jan   Vysočina          temperat~  -3.9 Winter
+## # ... with 19,478 more rows</code></pre>
+<div id="what-was-the-question" class="section level1">
+<h1>What was the question?</h1>
+<div id="claim---the-precipitation-in-czech-republic-decreases-over-last-decades." class="section level2">
+<h2>Claim - “The precipitation in Czech Republic decreases over last decades.”</h2>
+<pre class="r"><code>df %&gt;% 
+  
+  filter(key == &quot;precipitation&quot;) %&gt;% 
+  filter(region == &quot;Česká republika&quot;) %&gt;% 
+  
+  ggplot(aes(year_month, value)) + 
+  geom_col() + 
+  geom_smooth(method = &quot;lm&quot;) +
+  scale_x_datetime(labels = date_format(&quot;%Y&quot;), date_breaks = &quot;1 year&quot;) + 
+  theme(axis.text.x = element_text(angle = 75, hjust = 1)) + 
+  labs(y = &quot;precipitation [mm]&quot;, x = &quot;year&quot;) +
+  facet_wrap(~region, scales = &quot;free&quot;)</code></pre>
+<p><img src="/post/2018-12-18-temperature-change-in-czech-republic-part-ii_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<p>Nope (on average).</p>
+</div>
+<div id="claim---it-rains-less-and-less-every-summer-in-czech-republic." class="section level2">
+<h2>Claim - “It rains less and less every summer in Czech Republic.”</h2>
+<pre class="r"><code>df %&gt;% 
+  
+  filter(key == &quot;precipitation&quot;) %&gt;% 
+  filter(region == &quot;Česká republika&quot;) %&gt;% 
+  
+  ggplot(aes(year_month, value)) + 
+  geom_col() + 
+  geom_smooth(method = &quot;lm&quot;) +
+  # coord_flip() + 
+  scale_x_datetime(labels = date_format(&quot;%Y&quot;), date_breaks = &quot;1 year&quot;) + 
+  theme(axis.text.x = element_text(angle = 75, hjust = 1)) + 
+  labs(y = &quot;precipitation [mm]&quot;, x = &quot;year&quot;) +
+  facet_wrap(~season, scales = &quot;free&quot;)</code></pre>
+<pre><code>## Warning: Removed 1 rows containing non-finite values (stat_smooth).</code></pre>
+<pre><code>## Warning: Removed 1 rows containing missing values (position_stack).</code></pre>
+<p><img src="/post/2018-12-18-temperature-change-in-czech-republic-part-ii_files/figure-html/unnamed-chunk-7-1.png" width="672" />
+Well, seems to be quite stable, no drama here.</p>
+</div>
+<div id="claim---the-temperature-in-czech-republic-increases-over-last-decades." class="section level2">
+<h2>Claim - “The temperature in Czech Republic increases over last decades.”</h2>
+<pre class="r"><code>df %&gt;% 
+  
+  filter(key == &quot;temperature&quot;) %&gt;% 
+  filter(region == &quot;Česká republika&quot;) %&gt;% 
+  
+  ggplot(aes(year_month, value)) + 
+  geom_col() + 
+  geom_smooth(method = &quot;lm&quot;) +
+  scale_x_datetime(labels = date_format(&quot;%Y&quot;), date_breaks = &quot;1 year&quot;) + 
+  theme(axis.text.x = element_text(angle = 75, hjust = 1)) + 
+  labs(y = &quot;°C&quot;, x = &quot;year&quot;) + 
+  facet_wrap(~region)</code></pre>
+<pre><code>## Warning: Removed 2 rows containing non-finite values (stat_smooth).</code></pre>
+<pre><code>## Warning: Removed 2 rows containing missing values (position_stack).</code></pre>
+<p><img src="/post/2018-12-18-temperature-change-in-czech-republic-part-ii_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+<p>Yes, it does increase. On average by:</p>
+<pre class="r"><code>df %&gt;% 
+  
+  filter(key == &quot;temperature&quot;) %&gt;% 
+  filter(region == &quot;Česká republika&quot;) %&gt;% 
+  
+  mutate(year = year %&gt;% as.integer()) %&gt;% 
+
+  group_by(year) %&gt;% 
+  summarise(temp_avg_year = mean(value)) %&gt;% 
+  
+  lm(temp_avg_year~year, data = .) %&gt;%
+  tidy() %&gt;%
+  pull(estimate) %&gt;% 
+  .[[2]] %&gt;% 
+  round(3)</code></pre>
+<pre><code>## [1] 0.031</code></pre>
+<p>..°C per year.</p>
+<p>More to come….</p>
+</div>
+</div>

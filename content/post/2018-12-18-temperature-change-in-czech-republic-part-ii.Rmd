@@ -1,0 +1,124 @@
+---
+title: Temperature change in Czech Republic - part II
+author: Petr Schönbauer
+date: '2018-12-18'
+slug: temperature-change-in-czech-republic-part-ii
+categories: []
+tags:
+  - broom
+---
+
+```{r, message=FALSE}
+library(tidyverse)
+library(broom)
+library(lubridate)
+library(scales)
+```
+
+```{r}
+df_prec_raw <- readRDS("../../static/data/chmu_srazky.rds")
+df_temp_raw <- readRDS("../../static/data/chmu_teploty.rds")
+```
+
+```{r}
+df_prec_raw
+df_temp_raw
+```
+
+Merge both dataset together. Check if relevant columns are identical first.
+```{r}
+map2(df_prec_raw, df_temp_raw, identical)
+```
+
+```{r}
+df <- bind_cols(df_prec_raw, df_temp_raw) %>% 
+  select(year_month, year, month, region, temperature, precipitation) %>% 
+  gather(key, value, -year_month, -year, -month, -region) %>% 
+  mutate(season = case_when(
+    str_detect(month, "Dec|Jan|Feb") ~ "Winter",
+    str_detect(month, "Mar|Apr|May") ~ "Spring",
+    str_detect(month, "Jun|Jul|Aug") ~ "Autumn",
+    str_detect(month, "Sep|Oct|Nov") ~ "Summer"))
+df
+```
+
+# What was the question?
+
+## Claim - "The precipitation in Czech Republic decreases over last decades."
+
+```{r, warning=FALSE}
+df %>% 
+  
+  filter(key == "precipitation") %>% 
+  filter(region == "Česká republika") %>% 
+  
+  ggplot(aes(year_month, value)) + 
+  geom_col() + 
+  geom_smooth(method = "lm") +
+  scale_x_datetime(labels = date_format("%Y"), date_breaks = "1 year") + 
+  theme(axis.text.x = element_text(angle = 75, hjust = 1)) + 
+  labs(y = "precipitation [mm]", x = "year") +
+  facet_wrap(~region, scales = "free")
+```
+
+Nope (on average).
+
+## Claim - "It rains less and less every summer in Czech Republic."
+
+```{r, message=FALSE}
+df %>% 
+  
+  filter(key == "precipitation") %>% 
+  filter(region == "Česká republika") %>% 
+  
+  ggplot(aes(year_month, value)) + 
+  geom_col() + 
+  geom_smooth(method = "lm") +
+  # coord_flip() + 
+  scale_x_datetime(labels = date_format("%Y"), date_breaks = "1 year") + 
+  theme(axis.text.x = element_text(angle = 75, hjust = 1)) + 
+  labs(y = "precipitation [mm]", x = "year") +
+  facet_wrap(~season, scales = "free")
+```
+Well, seems to be quite stable, no drama here.
+
+## Claim - "The temperature in Czech Republic increases over last decades."
+
+```{r, message=FALSE}
+df %>% 
+  
+  filter(key == "temperature") %>% 
+  filter(region == "Česká republika") %>% 
+  
+  ggplot(aes(year_month, value)) + 
+  geom_col() + 
+  geom_smooth(method = "lm") +
+  scale_x_datetime(labels = date_format("%Y"), date_breaks = "1 year") + 
+  theme(axis.text.x = element_text(angle = 75, hjust = 1)) + 
+  labs(y = "°C", x = "year") + 
+  facet_wrap(~region)
+```
+
+Yes, it does increase. On average by:
+
+```{r}
+df %>% 
+  
+  filter(key == "temperature") %>% 
+  filter(region == "Česká republika") %>% 
+  
+  mutate(year = year %>% as.integer()) %>% 
+
+  group_by(year) %>% 
+  summarise(temp_avg_year = mean(value)) %>% 
+  
+  lm(temp_avg_year~year, data = .) %>%
+  tidy() %>%
+  pull(estimate) %>% 
+  .[[2]] %>% 
+  round(3)
+```
+
+..°C per year.
+
+More to come....

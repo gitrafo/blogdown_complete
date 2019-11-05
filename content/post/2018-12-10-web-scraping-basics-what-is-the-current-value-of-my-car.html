@@ -1,0 +1,186 @@
+---
+title: What is the current value of my car? (web scrape basics)
+author: Petr Schönbauer
+date: '2018-12-10'
+slug: web-scraping-basics-what-is-the-current-value-of-my-car
+categories: []
+tags:
+  - regex
+  - rvest
+  - httr
+  - scrape
+  - broom
+---
+
+
+
+<pre class="r"><code>library(tidyverse)
+library(rvest)
+library(httr)
+library(scales)
+library(broom)</code></pre>
+<p>I was wondering what is the current price of my car on the market. One way how to get some at least bit objective value is based on current situation on the market. I´m about to use simple (yet effective) web scraping technique to retrieve data from local best known internet car marketplace.</p>
+<div id="first-step---how-many-pages" class="section level1">
+<h1>First step - how many pages?</h1>
+<p>As a first step we need to find out on how many pages are the offers related to the same type of my car. By piping the root path to <code>read_html</code> and selecting node “a.hide-S”" we can find it out.</p>
+<pre class="r"><code>path &lt;- &quot;https://www.tipcars.com/skoda-rapid/benzin/&quot;
+# get max. page
+max &lt;- path %&gt;%
+  html_session() %&gt;% 
+  read_html %&gt;% 
+  html_nodes(&quot;a.hide-S&quot;) %&gt;% 
+  html_text()
+max</code></pre>
+<pre><code>## [1] &quot;8&quot;</code></pre>
+<p>..pages, each with 100 cars. Now you may ask how did I know which node to use? And an answer would be simple - using SelectorGadget tool. It is pretty cool tool allowing you to select any item on web page of your interest and provide “node” to it. You can find out how to use it <a href="https://selectorgadget.com/">here</a>.</p>
+</div>
+<div id="load-all-urls" class="section level1">
+<h1>Load all URLs</h1>
+<p>Now we can use information about number of pages to create vector of sites we will scrape.</p>
+<pre class="r"><code>url &lt;- paste0(path,&quot;?str=&quot;,1:max, &quot;-100&quot;)
+url</code></pre>
+<pre><code>## [1] &quot;https://www.tipcars.com/skoda-rapid/benzin/?str=1-100&quot;
+## [2] &quot;https://www.tipcars.com/skoda-rapid/benzin/?str=2-100&quot;
+## [3] &quot;https://www.tipcars.com/skoda-rapid/benzin/?str=3-100&quot;
+## [4] &quot;https://www.tipcars.com/skoda-rapid/benzin/?str=4-100&quot;
+## [5] &quot;https://www.tipcars.com/skoda-rapid/benzin/?str=5-100&quot;
+## [6] &quot;https://www.tipcars.com/skoda-rapid/benzin/?str=6-100&quot;
+## [7] &quot;https://www.tipcars.com/skoda-rapid/benzin/?str=7-100&quot;
+## [8] &quot;https://www.tipcars.com/skoda-rapid/benzin/?str=8-100&quot;</code></pre>
+<p>To get HTML structure of each page in list is <code>map</code> useful function.</p>
+<pre class="r"><code>html_list &lt;- url %&gt;% 
+  map(html_session) %&gt;% 
+  map(read_html)</code></pre>
+<p>This simple function extracts text from defined node and html (both input parameters).</p>
+<pre class="r"><code>getText &lt;- function(html, node) {
+  html %&gt;%
+    html_nodes(node) %&gt;% 
+    html_text(trim = TRUE) %&gt;% 
+    as.tibble()
+}</code></pre>
+</div>
+<div id="map-map-map" class="section level1">
+<h1>Map map map</h1>
+<pre class="r"><code># initiating df with extraction of car prize
+df &lt;- html_list %&gt;% map(getText, &quot;.fs-tluste&quot;) %&gt;%  map(~.[2:nrow(.),]) %&gt;% bind_rows()</code></pre>
+<pre><code>## Warning: `as.tibble()` is deprecated, use `as_tibble()` (but mind the new semantics).
+## This warning is displayed once per session.</code></pre>
+<pre class="r"><code>df &lt;- df %&gt;%
+  rename(cost = value) %&gt;% 
+  # extract engine
+  mutate(model = html_list %&gt;% map(getText, &quot;.motor&quot;) %&gt;% unlist) %&gt;% 
+  # extract mileage
+  mutate(mileage = html_list %&gt;% map(getText, &quot;.najeto&quot;) %&gt;% unlist) %&gt;% 
+  # extract year of production
+  mutate(year = html_list %&gt;% map(getText, &quot;.rok_vyroby&quot;) %&gt;% unlist)
+df</code></pre>
+<pre><code>## # A tibble: 773 x 4
+##    cost       model                    mileage year 
+##    &lt;chr&gt;      &lt;chr&gt;                    &lt;chr&gt;   &lt;chr&gt;
+##  1 125 024 Kč benzin, 42 kW            39 tkm  1984 
+##  2 129 999 Kč benzin, 1 197 ccm, 63 kW 276 tkm 2014 
+##  3 134 400 Kč benzin, 1 197 ccm, 63 kW 119 tkm 2014 
+##  4 149 900 Kč benzin, 1 198 ccm, 55 kW 87 tkm  2013 
+##  5 155 000 Kč benzin, 1 197 ccm, 63 kW 153 tkm 2015 
+##  6 159 000 Kč benzin, 1 197 ccm, 63 kW 156 tkm 2014 
+##  7 159 000 Kč benzin, 1 197 ccm, 63 kW 132 tkm 2013 
+##  8 160 000 Kč benzin, 1 197 ccm, 63 kW 122 tkm 2013 
+##  9 164 000 Kč benzin, 1 197 ccm, 63 kW 102 tkm 2013 
+## 10 168 000 Kč benzin, 1 197 ccm, 66 kW 197 tkm 2015 
+## # ... with 763 more rows</code></pre>
+<p>Here we have cars of interest (all Škoda Rapid gasoline variants). Let´s decompose it more using a bit of regular expression.</p>
+<pre class="r"><code>final &lt;- df %&gt;% 
+  # select numbers only
+  mutate(cost = str_extract(cost, &quot;^[0-9]+ [0-9]+&quot;)) %&gt;%
+  # replace white space
+  mutate(cost = str_replace_all(cost, &quot;\\p{WHITE_SPACE}&quot;, &quot;&quot;)) %&gt;%
+  # conversion to double
+  mutate(cost = cost %&gt;% as.numeric()) %&gt;%
+  # extract power
+  mutate(kW = str_extract(model, &quot;[0-9]{2} kW&quot;)) %&gt;% 
+  # get rid off &quot;kW&quot;
+  mutate(kW = str_extract(kW, &quot;[0-9]{2}&quot;)) %&gt;% 
+  # conversion to factor
+  mutate(kW = kW %&gt;% as.factor()) %&gt;% 
+  # extract mileage 
+  mutate(mileage = str_extract(mileage, &quot;^[0-9]+&quot;)) %&gt;%
+  # conversion to double
+  mutate(mileage = mileage %&gt;% as.numeric() * 1000) %&gt;% 
+  select(model, mileage, cost, kW, year)
+final</code></pre>
+<pre><code>## # A tibble: 773 x 5
+##    model                    mileage   cost kW    year 
+##    &lt;chr&gt;                      &lt;dbl&gt;  &lt;dbl&gt; &lt;fct&gt; &lt;chr&gt;
+##  1 benzin, 42 kW              39000 125024 42    1984 
+##  2 benzin, 1 197 ccm, 63 kW  276000 129999 63    2014 
+##  3 benzin, 1 197 ccm, 63 kW  119000 134400 63    2014 
+##  4 benzin, 1 198 ccm, 55 kW   87000 149900 55    2013 
+##  5 benzin, 1 197 ccm, 63 kW  153000 155000 63    2015 
+##  6 benzin, 1 197 ccm, 63 kW  156000 159000 63    2014 
+##  7 benzin, 1 197 ccm, 63 kW  132000 159000 63    2013 
+##  8 benzin, 1 197 ccm, 63 kW  122000 160000 63    2013 
+##  9 benzin, 1 197 ccm, 63 kW  102000 164000 63    2013 
+## 10 benzin, 1 197 ccm, 66 kW  197000 168000 66    2015 
+## # ... with 763 more rows</code></pre>
+<p>Now the data are ready to be plotted.</p>
+</div>
+<div id="plot-plot-plot" class="section level1">
+<h1>Plot plot plot</h1>
+<pre class="r"><code>final %&gt;% 
+  ggplot(aes(x = mileage, y = cost, color = kW)) +
+  geom_point() + 
+  scale_x_continuous(labels = comma) + 
+  scale_y_continuous(labels = comma) + 
+  coord_cartesian(xlim = c(0,200000), ylim = c(100000, 400000)) + 
+  geom_smooth(method = &quot;lm&quot;, se = FALSE) + 
+  labs(title = &quot;Škoda Rapid (gasoline)&quot;, subtitle = &quot;based on www.tipcars.com&quot;, x = &quot;mileage [km]&quot;, y = &quot;cost [Kč]&quot;)</code></pre>
+<p><img src="/post/2018-12-10-web-scraping-basics-what-is-the-current-value-of-my-car_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+<p>Focused on my car model only:</p>
+<pre class="r"><code>final %&gt;% 
+  filter(kW %in% c(&quot;77&quot;)) %&gt;% 
+  
+  ggplot(aes(x = mileage, y = cost, color = kW)) +
+  geom_point() + 
+  scale_x_continuous(labels = comma) + 
+  scale_y_continuous(labels = comma) + 
+  # coord_cartesian(xlim = c(0,200000), ylim = c(100000, 400000)) + 
+  geom_smooth(method = &quot;lm&quot;, se = FALSE) + 
+  labs(title = &quot;Škoda Rapid 1.2TSI 77kW&quot;, subtitle = &quot;based on www.tipcars.com&quot;, x = &quot;mileage [km]&quot;, y = &quot;cost [Kč]&quot;)</code></pre>
+<p><img src="/post/2018-12-10-web-scraping-basics-what-is-the-current-value-of-my-car_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
+</div>
+<div id="so-what-is-the-value-we-need-a-bit-of-linear-regression.." class="section level1">
+<h1>So, what is the value? We need a bit of linear regression..</h1>
+<p>In order to get single value we have to calculate regression coefficients.</p>
+<pre class="r"><code>coeff &lt;- final %&gt;% 
+  filter(kW %in% c(&quot;77&quot;)) %&gt;% 
+  lm(cost~mileage, data = .) %&gt;% 
+  tidy()
+coeff</code></pre>
+<pre><code>## # A tibble: 2 x 5
+##   term          estimate std.error statistic  p.value
+##   &lt;chr&gt;            &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt;
+## 1 (Intercept) 275560.    8747.         31.5  2.07e-23
+## 2 mileage         -0.540    0.0910     -5.94 2.16e- 6</code></pre>
+<p>Here we can infer that with each 1km on the road the car looses its value by ~0,5 Kč (~2 Eurocent).</p>
+<p>So assuming my car has around 100Tkm mileage its current value is around:</p>
+<pre class="r"><code>my_mileage = 100000
+y = coeff$estimate[1] + (my_mileage * coeff$estimate[2])
+paste(round(y), &quot;Kč&quot;)</code></pre>
+<pre><code>## [1] &quot;221534 Kč&quot;</code></pre>
+<p>Or visually:</p>
+<pre class="r"><code>final %&gt;% 
+  filter(kW %in% c(&quot;77&quot;)) %&gt;% 
+  
+  ggplot(aes(x = mileage, y = cost, color = kW)) +
+  geom_point() + 
+  scale_x_continuous(labels = comma) + 
+  scale_y_continuous(labels = comma) + 
+  geom_hline(aes(yintercept = y)) +
+  geom_vline(aes(xintercept = my_mileage)) + 
+  geom_label(aes(x = my_mileage, y = y,label = paste(round(y), &quot;Kč&quot;)), hjust = 0, vjust = 0) + 
+  # coord_cartesian(xlim = c(0,200000), ylim = c(100000, 400000)) + 
+  geom_smooth(method = &quot;lm&quot;, se = FALSE) + 
+  labs(title = &quot;Škoda Rapid 1.2TSI 77kW&quot;, subtitle = &quot;based on www.tipcars.com&quot;, x = &quot;mileage [km]&quot;, y = &quot;cost [Kč]&quot;)</code></pre>
+<p><img src="/post/2018-12-10-web-scraping-basics-what-is-the-current-value-of-my-car_files/figure-html/unnamed-chunk-12-1.png" width="672" /></p>
+<p>Ok, that´s it. Hope you enjoyed:) ToDo - which car (manufacturer) looses the price fastest.</p>
+</div>

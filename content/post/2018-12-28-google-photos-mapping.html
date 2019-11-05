@@ -1,0 +1,190 @@
+---
+title: Google Photos mapping using leaflet
+author: Petr Schönbauer
+date: '2018-12-28'
+slug: google-photos-mapping
+categories: []
+tags:
+  - json
+  - google
+  - leaflet
+draft: false
+---
+
+
+
+<p>In this post I will demonstrate how to display your Google Photos on a map. As you probably know, most of today´s mobile devices or cameras allow to record GPS position during taking the photos.</p>
+<p>If you are using Google Photos you can leverage <a href="https://takeout.google.com/settings/takeout">Google Takeout</a> for this task. Google Takeout is a service for anyone with Google account allowing the users to download back any previously updated data.</p>
+<p>It means you can download back all your uploaded photos including JSON files for each file. These JSON files are exactly what we are interested in as they contains all information the Google tracks about your photos.</p>
+<pre class="r"><code>library(jsonlite)
+library(lubridate)
+library(tidyverse)
+library(leaflet)
+library(mapview)</code></pre>
+<p>After you download your photos you can simply retrieve the list of all JSON files:</p>
+<pre class="r"><code>path_vector &lt;- list.files(&quot;D:/GoogleDrive/Takeout&quot;, pattern = &quot;.json$&quot;, recursive = TRUE, full.names = TRUE)
+path_vector %&gt;% head</code></pre>
+<pre><code>## [1] &quot;D:/GoogleDrive/Takeout/Fotky Google/2004_06 Budvar factory party 12,13/DSCF0019.jpg.json&quot;
+## [2] &quot;D:/GoogleDrive/Takeout/Fotky Google/2004_06 Budvar factory party 12,13/DSCF0029.jpg.json&quot;
+## [3] &quot;D:/GoogleDrive/Takeout/Fotky Google/2004_06 Budvar factory party 12,13/DSCF0030.jpg.json&quot;
+## [4] &quot;D:/GoogleDrive/Takeout/Fotky Google/2004_06 Budvar factory party 12,13/DSCF0033.jpg.json&quot;
+## [5] &quot;D:/GoogleDrive/Takeout/Fotky Google/2004_06 Budvar factory party 12,13/DSCF0037.jpg.json&quot;
+## [6] &quot;D:/GoogleDrive/Takeout/Fotky Google/2004_06 Budvar factory party 12,13/DSCF6092.jpg.json&quot;</code></pre>
+<p>Each JSON contains several variables about the photo. I´m interested only in GPS location, path to Google server and the date the picture was taken.</p>
+<pre class="r"><code>lst &lt;- path_vector %&gt;% map(fromJSON)
+lst[1]</code></pre>
+<pre><code>## [[1]]
+## [[1]]$title
+## [1] &quot;DSCF0019.jpg&quot;
+## 
+## [[1]]$description
+## [1] &quot;&quot;
+## 
+## [[1]]$url
+## [1] &quot;https://lh3.googleusercontent.com/-6TjimfukJvM/XCJ3wEGP6OI/AAAAAAACR_Q/-hRC-QHc2Lgw16X21jBovjDDJ0RDSuRdACLABGAYYCw/s0-d/DSCF0019.jpg&quot;
+## 
+## [[1]]$imageViews
+## [1] &quot;0&quot;
+## 
+## [[1]]$creationTime
+## [[1]]$creationTime$timestamp
+## [1] &quot;1545762751&quot;
+## 
+## [[1]]$creationTime$formatted
+## [1] &quot;25. 12. 2018 18:32:31 UTC&quot;
+## 
+## 
+## [[1]]$modificationTime
+## [[1]]$modificationTime$timestamp
+## [1] &quot;1545851448&quot;
+## 
+## [[1]]$modificationTime$formatted
+## [1] &quot;26. 12. 2018 19:10:48 UTC&quot;
+## 
+## 
+## [[1]]$geoData
+## [[1]]$geoData$latitude
+## [1] 0
+## 
+## [[1]]$geoData$longitude
+## [1] 0
+## 
+## [[1]]$geoData$altitude
+## [1] 0
+## 
+## [[1]]$geoData$latitudeSpan
+## [1] 0
+## 
+## [[1]]$geoData$longitudeSpan
+## [1] 0
+## 
+## 
+## [[1]]$geoDataExif
+## [[1]]$geoDataExif$latitude
+## [1] 0
+## 
+## [[1]]$geoDataExif$longitude
+## [1] 0
+## 
+## [[1]]$geoDataExif$altitude
+## [1] 0
+## 
+## [[1]]$geoDataExif$latitudeSpan
+## [1] 0
+## 
+## [[1]]$geoDataExif$longitudeSpan
+## [1] 0
+## 
+## 
+## [[1]]$photoTakenTime
+## [[1]]$photoTakenTime$timestamp
+## [1] &quot;1086109200&quot;
+## 
+## [[1]]$photoTakenTime$formatted
+## [1] &quot;1. 6. 2004 17:00:00 UTC&quot;</code></pre>
+<p>Tibble is always good starting point..</p>
+<pre class="r"><code>df_raw &lt;- tibble(orig_path = path_vector, data = lst)
+df_raw</code></pre>
+<pre><code>## # A tibble: 6,944 x 2
+##    orig_path                                                     data     
+##    &lt;chr&gt;                                                         &lt;list&gt;   
+##  1 D:/GoogleDrive/Takeout/Fotky Google/2004_06 Budvar factory p~ &lt;list [9~
+##  2 D:/GoogleDrive/Takeout/Fotky Google/2004_06 Budvar factory p~ &lt;list [9~
+##  3 D:/GoogleDrive/Takeout/Fotky Google/2004_06 Budvar factory p~ &lt;list [9~
+##  4 D:/GoogleDrive/Takeout/Fotky Google/2004_06 Budvar factory p~ &lt;list [9~
+##  5 D:/GoogleDrive/Takeout/Fotky Google/2004_06 Budvar factory p~ &lt;list [9~
+##  6 D:/GoogleDrive/Takeout/Fotky Google/2004_06 Budvar factory p~ &lt;list [9~
+##  7 D:/GoogleDrive/Takeout/Fotky Google/2004_06 Budvar factory p~ &lt;list [9~
+##  8 D:/GoogleDrive/Takeout/Fotky Google/2004_06 Budvar factory p~ &lt;list [9~
+##  9 D:/GoogleDrive/Takeout/Fotky Google/2004_06 Budvar factory p~ &lt;list [9~
+## 10 D:/GoogleDrive/Takeout/Fotky Google/2004_06 Budvar factory p~ &lt;list [9~
+## # ... with 6,934 more rows</code></pre>
+<p>A little bit of extractions and manipulation..</p>
+<pre class="r"><code>df &lt;- df_raw %&gt;% 
+  # exclude &quot;metadata.json&quot; files
+  filter(!str_detect(orig_path, &quot;metadata&quot;)) %&gt;% 
+  # extract link to google server
+  mutate(google_path = map_chr(data, &quot;url&quot;)) %&gt;% 
+  # exclude video files
+  filter(!str_detect(google_path, &quot;video-downloads&quot;)) %&gt;%
+  # this will modify the link in order to display in popup window later instead of download
+  mutate(google_path = str_replace(google_path, &quot;/s0-d&quot;, &quot;&quot;)) %&gt;% 
+  # extract GPS location
+  mutate(lat = map(data, &quot;geoData&quot;) %&gt;% map_dbl(., &quot;latitude&quot;)) %&gt;%
+  mutate(lon = map(data, &quot;geoData&quot;) %&gt;% map_dbl(., &quot;longitude&quot;)) %&gt;%
+  # extract photo taken time
+  mutate(photo_taken_time = map(data, &quot;photoTakenTime&quot;) %&gt;% map_chr(., &quot;formatted&quot;)) %&gt;%
+  mutate(photo_taken_time = dmy_hms(photo_taken_time)) %&gt;% 
+  select(-data)
+df</code></pre>
+<pre><code>## # A tibble: 6,725 x 5
+##    orig_path           google_path           lat   lon photo_taken_time   
+##    &lt;chr&gt;               &lt;chr&gt;               &lt;dbl&gt; &lt;dbl&gt; &lt;dttm&gt;             
+##  1 D:/GoogleDrive/Tak~ https://lh3.google~     0     0 2004-06-01 17:00:00
+##  2 D:/GoogleDrive/Tak~ https://lh3.google~     0     0 2004-06-01 17:00:00
+##  3 D:/GoogleDrive/Tak~ https://lh3.google~     0     0 2004-06-01 17:00:00
+##  4 D:/GoogleDrive/Tak~ https://lh3.google~     0     0 2004-06-01 17:00:00
+##  5 D:/GoogleDrive/Tak~ https://lh3.google~     0     0 2004-06-01 17:00:00
+##  6 D:/GoogleDrive/Tak~ https://lh3.google~     0     0 2004-06-01 17:00:00
+##  7 D:/GoogleDrive/Tak~ https://lh3.google~     0     0 2004-06-01 17:00:00
+##  8 D:/GoogleDrive/Tak~ https://lh3.google~     0     0 2004-06-01 17:00:00
+##  9 D:/GoogleDrive/Tak~ https://lh3.google~     0     0 2004-06-01 17:00:00
+## 10 D:/GoogleDrive/Tak~ https://lh3.google~     0     0 2004-06-01 17:00:00
+## # ... with 6,715 more rows</code></pre>
+<pre class="r"><code>df %&gt;% 
+  count(lat != 0 &amp; lon != 0) %&gt;% 
+  mutate(prop = round(n/sum(n)*100,2))</code></pre>
+<pre><code>## # A tibble: 2 x 3
+##   `lat != 0 &amp; lon != 0`     n  prop
+##   &lt;lgl&gt;                 &lt;int&gt; &lt;dbl&gt;
+## 1 FALSE                  6382  94.9
+## 2 TRUE                    343   5.1</code></pre>
+<p>..obviously most of my pictures is without GPS data. The good news is it can be easily edited directly on Google Photos app for any photo.</p>
+<pre class="r"><code>df %&gt;% 
+  filter(lat!=0) %&gt;% 
+  count(year(photo_taken_time))</code></pre>
+<pre><code>## # A tibble: 7 x 2
+##   `year(photo_taken_time)`     n
+##                      &lt;dbl&gt; &lt;int&gt;
+## 1                     2012    37
+## 2                     2013    16
+## 3                     2014    14
+## 4                     2015    10
+## 5                     2016     6
+## 6                     2017    13
+## 7                     2018   247</code></pre>
+<p>..it is related to the fact that my last phone is my first which allows to record GPS during taking photos.</p>
+<p>Finally, using the leaflet maps we can display all photos as points on a map and use it´s functionality as selecting the point and display the photo.</p>
+<pre class="r"><code>imgurl &lt;- df %&gt;% 
+  filter(lat!=0) %&gt;% 
+  pull(google_path) #%&gt;% </code></pre>
+<pre class="r"><code>m &lt;- df %&gt;% 
+  filter(lat!=0) %&gt;% 
+  leaflet() %&gt;%
+  # add default OpenStreetMap map tiles
+  addTiles() %&gt;%
+  addCircles(popup = popupImage(img = imgurl, src = c(&quot;remote&quot;))) %&gt;% 
+  clearBounds()
+m </code></pre>
+<p>This is just image due to obvious personal reasons. Feel free to replicate for your own data;) Hope you enjoyed.</p>
+<p><img src = "/img/leaflet_snip.png" width="100"/></p>

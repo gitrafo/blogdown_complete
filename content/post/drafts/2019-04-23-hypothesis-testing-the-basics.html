@@ -1,0 +1,32 @@
+---
+title: Hypothesis testing - the basics
+author: Petr Schönbauer
+date: '2019-04-23'
+slug: hypothesis-testing-the-basics
+categories: []
+tags:
+  - R
+  - hypothesis
+draft: true
+---
+
+
+
+<pre class="r"><code>library(tidyverse)
+library(tidytext)
+library(janeaustenr)</code></pre>
+<p>2 knihy - střední hodnota (mean), standardní odchylka (sd), rozptyl (variance) délek slov, graficky rozdělení délek slov</p>
+<pre class="r"><code>books &lt;- austen_books() %&gt;% 
+  group_by(book) %&gt;% 
+  group_split()</code></pre>
+<pre class="r"><code>books_word &lt;- books %&gt;% 
+  #.[c(1,2)] %&gt;% 
+  map(~unnest_tokens(.x, word, text)) %&gt;% 
+  map(~.x %&gt;% mutate(word_length = str_length(word))) %&gt;% 
+  bind_rows()</code></pre>
+<pre class="r"><code>books_word %&gt;% 
+  ggplot(aes(x = word_length)) +
+  geom_histogram() + 
+  facet_wrap(~book)</code></pre>
+<pre><code>## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</code></pre>
+<p><img src="/blog/2019-04-23-hypothesis-testing-the-basics_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>

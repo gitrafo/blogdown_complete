@@ -1,0 +1,151 @@
+---
+title: Google Takeout - missing photos? Download them on your own.
+author: Petr Schönbauer
+date: '2019-01-05'
+slug: google-takeout-missing-photos-download-them-on-your-own
+categories: []
+tags:
+  - R
+  - json
+  - pmap
+  - google
+---
+
+
+
+<p>Recently I decided to use Google´s Photos app to manage all my photos. My collection is about ~7000 photos so it took me some time to create the albums and organize it. My intention was to do a back up from time to time using <a href="https://takeout.google.com/settings/takeout">Google Takeout</a> to keep the photos backed-up outside cloud as well.</p>
+<p>Google Takeout is a service for everyone with Google account allowing the users to download back any previously updated data. It means you can download back all your uploaded photos too - so I tried.</p>
+<p>I thought the Google is reliable in matter of storing/searching/downloading data, well it is Google, right? Who else should?</p>
+<p>..I was wrong =&gt;</p>
+<p>After you succesfully download your data you will end up with several *.zip files:</p>
+<p><img src="/img/takeout.png" style="width:60.0%" /></p>
+<p>Next logical step is to unzip the files and hope that every photo you ever uploaded to Google Photo is there:)</p>
+<p>In my case the disappointment was pretty fast. After first glance in some of the extracted albums I can see some of the *.jpg files are missing. An example:</p>
+<p><img src="/img/takeout2.png" style="width:60.0%" /></p>
+<p>You can see all I got from 1992 album is just two photos. There should be seven of them. At first I thought “ok, some sync issue”..however I got the same output after several days..I thought the files have to be somehow indexed by Google..but even after some time I got the same results again…Ok Google, I´m not that patient:)</p>
+<p>In order to get “lost” photos back we can leverage two facts:</p>
+<ul>
+<li>the JSON files are downloaded correctly for each file</li>
+<li>the JSON files contains link to the photo on Google server</li>
+</ul>
+<div id="how-many-photos-are-missing-were-not-taken-out" class="section level1">
+<h1>How many photos are missing = were not “Taken out”?</h1>
+<pre class="r"><code>library(tidyverse)
+library(jsonlite)
+library(fs)</code></pre>
+<pre class="r"><code>tibble(json_orig_path = dir_ls(&quot;D:/GoogleDrive/Archiv/Google_Photos_Backup&quot;, recursive = TRUE, type = &quot;file&quot;)) %&gt;%
+  # exclude &quot;metadata.json&quot; files - each folder has one
+  filter(!str_detect(json_orig_path, &quot;metadata.json&quot;)) %&gt;% 
+  # extract file extension
+  mutate(extension = str_extract(json_orig_path, &quot;\\.[A-Za-z0-9_]+$&quot;)) %&gt;%
+  count(extension) -&gt; t
+t</code></pre>
+<pre><code>## # A tibble: 8 x 2
+##   extension     n
+##   &lt;chr&gt;     &lt;int&gt;
+## 1 .f            1
+## 2 .jp           1
+## 3 .jpg       1698
+## 4 .JPG        553
+## 5 .jpg_         2
+## 6 .json      7131
+## 7 .mp4         28
+## 8 .wmv          8</code></pre>
+<p>..there is missing quite a lot of files as each JSON file should have corresponding media file - that´s disappointing.</p>
+<pre class="r"><code>t %&gt;% 
+  count(extension == &quot;.json&quot;, wt = n)</code></pre>
+<pre><code>## # A tibble: 2 x 2
+##   `extension == &quot;.json&quot;`    nn
+##   &lt;lgl&gt;                  &lt;int&gt;
+## 1 FALSE                   2291
+## 2 TRUE                    7131</code></pre>
+<p>It means ~70% is missing!</p>
+</div>
+<div id="really-google-30-taken-out-only" class="section level1">
+<h1>Really Google, 30% “taken out” only?</h1>
+<p>Well, that´s not what I consider sufficient. I know the Google Photos is free, but this is not what I would expect from leading IT company. Besides, I´m not the only one with this issue based on Google´s forum, yet no feedack or reaction from Google.</p>
+<p>Anyway, let´s to do it on our own. As mentioned, we can leverage the JSON files as they contain the url (to Google server) to each photo. My target is to save the files into the same folder (album) as where is the JSON file.</p>
+<p>Let´s make a tibble of all JSON files (Photos) we want to extract url from.</p>
+<pre class="r"><code>df_raw &lt;- tibble(json_orig_path = dir_ls(&quot;D:/Google_Photos_Backup&quot;, 
+                                         recursive = TRUE, 
+                                         regex = &quot;*.json$&quot;))
+df_raw</code></pre>
+<pre><code>## # A tibble: 7,295 x 1
+##    json_orig_path                                
+##    &lt;fs::path&gt;                                    
+##  1 D:/Google_Photos_Backup/1984/metadata.json    
+##  2 D:/Google_Photos_Backup/1984/P1010212.JPG.json
+##  3 D:/Google_Photos_Backup/1984/P1010213.JPG.json
+##  4 D:/Google_Photos_Backup/1984/P1010214.JPG.json
+##  5 D:/Google_Photos_Backup/1984/P1010215.JPG.json
+##  6 D:/Google_Photos_Backup/1984/P1010216.JPG.json
+##  7 D:/Google_Photos_Backup/1985/metadata.json    
+##  8 D:/Google_Photos_Backup/1985/P1000439.JPG.json
+##  9 D:/Google_Photos_Backup/1987/metadata.json    
+## 10 D:/Google_Photos_Backup/1987/P1000442.JPG.json
+## # ... with 7,285 more rows</code></pre>
+<pre class="r"><code>df_sub &lt;- df_raw %&gt;% 
+  # exclude &quot;metadata.json&quot; files - each folder has one
+  filter(!str_detect(json_orig_path, &quot;metadata&quot;)) %&gt;%
+  # add list-column with json content
+  mutate(data = json_orig_path %&gt;% map(fromJSON)) %&gt;% 
+  # extract link to google server
+  mutate(google_path = map_chr(data, &quot;url&quot;)) %&gt;% 
+  # exclude video files
+  filter(!str_detect(google_path, &quot;video-downloads&quot;)) %&gt;%
+  # extract filename
+  mutate(filename = map_chr(data, &quot;title&quot;)) %&gt;% 
+  # create destination path incl filename
+  mutate(pic_dest_path = paste(dirname(json_orig_path),filename,sep = &quot;/&quot;)) %&gt;% 
+  # add rowid
+  rowid_to_column()
+df_sub %&gt;% glimpse()</code></pre>
+<pre><code>## Observations: 7,055
+## Variables: 6
+## $ rowid          &lt;int&gt; 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, ...
+## $ json_orig_path &lt;fs::path&gt; &quot;D:/Google_Photos_Backup/1984/P1010212.JPG...
+## $ data           &lt;list&gt; [[&quot;P1010212.JPG&quot;, &quot;&quot;, &quot;https://lh3.googleuserc...
+## $ google_path    &lt;chr&gt; &quot;https://lh3.googleusercontent.com/-zKvbiXTAtdg...
+## $ filename       &lt;chr&gt; &quot;P1010212.JPG&quot;, &quot;P1010213.JPG&quot;, &quot;P1010214.JPG&quot;,...
+## $ pic_dest_path  &lt;chr&gt; &quot;D:/Google_Photos_Backup/1984/P1010212.JPG&quot;, &quot;D...</code></pre>
+<p>Now we are ready to download the files:</p>
+<pre class="r"><code>df_sub %&gt;% 
+  pwalk(function(google_path, pic_dest_path, rowid, ...){
+    
+    if (!file_exists(pic_dest_path)){
+      download.file(url = google_path, destfile = pic_dest_path, mode = &quot;wb&quot;, quiet = TRUE)
+      cat(paste(rowid,&quot;\tdownloaded&quot;))
+    } else {
+      cat(paste(rowid,&quot;\texist&quot;))
+    }
+    
+    cat(&quot;\n&quot;)
+    })</code></pre>
+<p>Let´s check it again after download:</p>
+<pre class="r"><code>tibble(json_orig_path = dir_ls(&quot;D:/Google_Photos_Backup&quot;, recursive = TRUE, type = &quot;file&quot;)) %&gt;%
+  # exclude &quot;metadata.json&quot; files - each folder has one
+  filter(!str_detect(json_orig_path, &quot;metadata.json&quot;)) %&gt;% 
+  # extract file extension
+  mutate(extension = str_extract(json_orig_path, &quot;\\.[A-Za-z0-9_]+$&quot;)) %&gt;%
+  count(extension) -&gt; t
+t</code></pre>
+<pre><code>## # A tibble: 8 x 2
+##   extension     n
+##   &lt;chr&gt;     &lt;int&gt;
+## 1 .f            1
+## 2 .jp           1
+## 3 .jpg       3188
+## 4 .JPG       3921
+## 5 .jpg_         2
+## 6 .json      7131
+## 7 .mp4         28
+## 8 .wmv          8</code></pre>
+<pre class="r"><code>t %&gt;% 
+  count(extension == &quot;.json&quot;, wt = n)</code></pre>
+<pre><code>## # A tibble: 2 x 2
+##   `extension == &quot;.json&quot;`    nn
+##   &lt;lgl&gt;                  &lt;int&gt;
+## 1 FALSE                   7149
+## 2 TRUE                    7131</code></pre>
+<p>That´s much better, isn´t it?</p>
+</div>

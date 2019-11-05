@@ -1,0 +1,239 @@
+---
+title: Purrr´s map and friends - good practise
+author: Petr Schönbauer
+date: '2019-01-09'
+slug: purrr-s-map-and-friends-good-practise
+categories: []
+tags:
+  - R
+  - purrr
+  - map
+  - replace_na
+---
+
+This post is my personal reference for functional programming with `purrr` package. I often find myself to search on google/stackoverflow "how to" iterate over this and that so it make sense to put it together somewhere. This post is vastly based on brilliant Jenny Bryan´s purrr [tutorial](https://jennybc.github.io/purrr-tutorial/) and focus on nested lists / list-columns.
+
+```{r, warning=FALSE, message=FALSE}
+library(repurrrsive)
+library(tidyverse)
+```
+
+Two datasets from `repurrrsive` package to practise on:
+
+* `got_char` Game of Thrones characters dataset.
+* `gh_repos` Github repositories dataset.
+
+# Start simple
+* using `str` and it´s `max.level` and `list.len` argument
+* using `View()` function in RStudio
+
+```{r}
+# is it even list?
+got_chars %>% class
+```
+
+```{r}
+# list.len limits each nesting level to x items (by default list.len = 99)
+# in case of more nested lists use max.level argument, by default all levels are shown
+got_chars %>% str(list.len = 3)
+```
+So `got_char` is a list of 30 lists, each with 18 items.
+
+We can get this information this way too:
+```{r}
+# number of items (lists in this case) at level 0 
+got_chars %>% length()
+# number of items at level 1
+got_chars %>% map_int(length)
+```
+Or using `View()` function in RStudio. I prefer it.
+
+![](/img/purrr_0.png){width=80%}
+
+..down to 30 lists
+
+Now I want all items just from first list:
+```{r}
+got_chars[1] %>% str
+```
+Here is good to realize: </br>
+a) that single `[` returns always list </br>
+b) even if 5th element is pulled, the index of outcome will be 1, not 5.
+```{r}
+got_chars[5]
+```
+Now, I want all content of items just from first list:
+```{r}
+# outcome is a list again but with one level only
+got_chars[[1]] %>% str
+```
+Good to realize:
+```{r}
+got_chars[1] %>% names
+```
+vs.
+```{r}
+got_chars[[1]] %>% names
+```
+Extract `name` from each list:
+```{r}
+got_chars %>% map_chr(~.$name)
+```
+or
+```{r}
+got_chars %>% map_chr(~.x$name)
+```
+or
+```{r}
+got_chars %>% map_chr("name")
+```
+or straight to tibble:
+```{r}
+got_chars %>% map_df(~.[c("name", "gender")])
+```
+What if I want "aliases" too? 
+```{r, error=TRUE}
+got_chars %>% map_df(~.[c("name", "gender", "aliases")])
+```
+..it doesn´t work beacause some characters have more than one aliase.
+
+But this does:
+```{r}
+# alias will be list-colum ("nested")
+df <- tibble(
+  name = got_chars %>% map_chr("name"),
+  id = got_chars %>% map_int("id"),
+  gender = got_chars %>% map_chr("gender"),
+  aliases = got_chars %>% map("aliases")
+)
+df
+```
+..it works because alias is bind as list-colum ("nested")
+
+Using `unnest` comes handy now? Nope yet..
+```{r, error=TRUE}
+df %>% 
+  unnest()
+```
+..it is because some of alias has NA (NULL) value (# NULL are the list-col equivalent of NAs):
+
+```{r}
+df$aliases %>% map_lgl(is.null)
+```
+We can use `replace_na` to replace NULL to "" or whatever and `unnest` afterwards.
+```{r}
+df %>% 
+  replace_na(list(aliases=list(""))) %>% 
+  unnest()
+```
+# To tibble asap
+..extracting using mutate+map+unnest </br>
+..allows iterative approach - more decomposed code and faster debugging
+
+### a) directly to tibble
+```{r}
+tibble(name = got_chars %>% map_chr(~.$name)) %>% 
+  mutate(id =  got_chars %>% map_int(~.$id)) %>% 
+  mutate(aliases =  got_chars %>% map(~.$aliases)) %>%
+  replace_na(list(aliases = list(""))) %>% 
+  unnest(aliases)
+```
+### b) `set_names` and `enframe` the list (in fact it is directly to tibble too)
+```{r}
+got_chars %>% 
+  set_names(., got_chars %>% map_chr(~.$name)) %>% 
+  enframe(name = "name", value = "data") %>% 
+  mutate(id = data %>% map_int(~.$id)) %>% 
+  # or
+  mutate(id_2 = data %>% map(~.$id) %>% unlist) %>% 
+  mutate(aliases =  data %>% map(~.$aliases)) %>%
+  replace_na(list(aliases = list(""))) %>% 
+  unnest(aliases, .drop = FALSE)
+  
+```
+# More nested stuff
+```{r}
+# explore gh_repos list
+gh_repos[[1]] %>% str(max.level = 4, list.len = 4)
+```
+or again using `View()` function in RStudio. I prefer it because you can easily miss something when using `str` (yes, it sounds strange, but that is my experiance with complicated lists). There are two major advantages:
+
+1) Using `View` you can explore single element down to latest element without extending the list with other elements (unlike `str`) </br>
+2) Using `View` you can get direct address to now-matter-how-much-scary-nested element (can be done with `str` too actually, but more complicated way)
+
+![](/img/purrr_2.png){width=100%}
+
+or
+
+```{r}
+# number of item at level 0
+gh_repos %>% length()
+```
+
+```{r}
+# number of item at level 1
+gh_repos %>% map_int(length)
+```
+```{r}
+# number of item at level 2
+gh_repos %>% map(map_int, length)
+```
+..more about last one later </br>
+..`gh_repos` is list of 6 lists, each with 30 (except one with 26 lists), each with 68 items
+
+```{r}
+# exctract name
+gh_repos %>% map(~.[[1]][["name"]])
+```
+..but it is NOT correct. Why? Because this is just item "name" from each first sub-list. We need somehow iterate over index map_chr(~.[[i]][["name"]])
+
+```{r}
+gh_repos %>% map(function(x){map_chr(x, ~.$name)
+  }) %>% 
+  str()
+```
+That´s it! </br>
+or
+```{r}
+gh_repos %>% map(map_chr, ~.$name) %>% 
+  str()
+```
+That´s it again. </br>
+or
+```{r}
+gh_repos %>% modify_depth(2, ~.$name) %>% 
+  str(list.len = 4)
+# modify_depth is a little bit difficult to abstract and the disadvantage is that it return list only, there isn´t modify_depth_char equivalent
+```
+Now, we will extract `owner` list, more specifically `login` variable. We can notice it is duplicated in each list = useful to set as name. The index = 1 is OK as we will extract just one (first) item from list as all others are the same.
+```{r}
+# extract login
+gh_repos %>% map_chr(~.[[1]][["owner"]][["login"]])
+```
+or
+```{r}
+# extract login
+gh_repos %>% map_chr(~.[[1]]$owner$login)
+```
+or
+```{r}
+gh_repos %>% map_chr(c(1,4,1))
+```
+# The best practise - put it all together
+```{r}
+# explore the list first with View() or str, understand the data
+# put list into tibble using enframe (list must have names) or set_names first = get the address to logical element for your names
+gh_repos %>%
+  set_names(., map_chr(gh_repos, ~.[[1]]$owner$login)) %>% 
+  enframe(name = "name", value = "data") -> t 
+t
+```
+..here is good to realize that `data` is basically replicated `gh_repos`.
+```{r}
+# now mutate whatever you want by extracting using mutate + map depending on level of nest
+t %>% 
+  mutate(package = data %>% map(map_chr, ~.$name)) %>%
+  # the index = 1 is OK here as we will extract just one (first) item from sub-list as all others are the same.
+  mutate(owner_url = data %>% map_chr(~.[[1]]$owner$url)) %>% 
+  unnest(package, .drop = FALSE)
+```

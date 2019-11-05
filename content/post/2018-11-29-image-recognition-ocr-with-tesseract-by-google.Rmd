@@ -1,0 +1,119 @@
+---
+title: Image recognition (OCR) with Tesseract by Google
+author: Petr Schönbauer
+date: '2018-11-29'
+slug: image-recognition-ocr-with-tesseract-by-google
+categories: []
+tags:
+  - R
+  - OCR
+  - machine learning
+  - tesseract
+  - magick
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Recently I have read on R weekly post about using image recognition engine by Google [tesseract](https://opensource.google.com/projects/tesseract) package. This package provides tool for optical character recognition (OCR) - simply allows to retrieve text from images. `Tesseract` is used for text detection on mobile devices, in video, and in Gmail image spam detection. How cool is that? Let´s try it too.
+
+```{r, message=FALSE}
+library(tidyverse)
+library(magick)
+library(tesseract)
+```
+
+## Sample image
+
+We need some testing image. I´m curious especially how well it perform on product labels like serial numbers, etc. (not the barcode, just the text). No need to think a lot - let´s use first one by google search "product label serial number".
+
+![](/img/label.png){width=200px}
+
+I have no idea what product is this label related to, but it will serve our purpose.
+
+We are interested in P/N and S/N so the expected outcome will be:
+
+* P/N:    8-01532-01\
+* S/N:    QTMCHOU-12345AB678
+
+# First shot - no image preprocessing
+
+```{r}
+path <- "../../static/data/label.png"
+```
+
+Just read the image and pass it to `ocr` function.
+
+```{r}
+path %>%
+  image_read() %>% 
+  ocr()
+```
+We can see some successfully recognized strings delimited with `\n`. Let´s tweak it a bit into tibble.
+
+```{r}
+path %>%
+  image_read() %>% 
+  ocr() %>% 
+  str_split("\n") %>% 
+  unlist %>% 
+  as.tibble()
+```
+Now we have tibble line by line as recognized from image. Obviously the barcode is mistakenly recognized as text. Besides notice that "P/N:" is recognized as "PIN:" - not exactly what we want.
+
+# Tune just a bit - including image preprocessing
+Package `magick` comes into play now with resizing, converting image into grayscale (not needed in this case), contrasting and enhancing the image in order to help the model more easily recognize the letters.
+
+```{r}
+df <- path %>%
+  image_read() %>% 
+  image_resize("2000x") %>% 
+  image_convert(type="grayscale") %>%
+  image_contrast() %>%
+  image_enhance() %>%
+  ocr() %>% 
+  str_split("\n") %>% 
+  unlist %>% 
+  as.tibble()
+df
+```
+It is close to what we need. We can see correctly recognized "P/N:". As a next step my first naive approach was filtering "P/N" or "S/N" and then "somehow" get rid off "System" word. However it would be quite hardcoded (but easy). So my instinct tells me - regular expressions:). Here I remembered the famous quote:)
+
+>Some people, when confronted with a problem, think "I know, I'll use regular expressions." Now they have two problems.\ 
+>- Jamie Zawinski
+
+It turned out be the most difficult part to solve.
+
+```{r}
+df %>% 
+  mutate(regex = str_extract(value, "[^a-z]/N: [\\S]*"))
+```
+
+Simple but powerfull. Used regular expression can be described basically as find "/N:" and take any letter before ([^a-z]) and any non-white space after ( [\\\\S]*).
+
+# Voilà
+
+Now we can finally tune the output to get exactly expected outcome:
+```{r}
+df %>% 
+  mutate(regex = str_extract(value, "[^a-z]/N: [\\S]*")) %>% 
+  filter(!is.na(regex)) %>% 
+  separate(regex, " ", into = c("key", "value"))
+```
+
+# BTW
+
+There is even a function `ocr_data` providing confidence how well each word was recognized. 
+
+```{r}
+path %>%
+  image_read() %>% 
+  image_resize("2000x") %>% 
+  image_convert(type="grayscale") %>%
+  image_contrast() %>%
+  image_enhance() %>%
+  ocr_data() %>% 
+  arrange(desc(confidence)) %>% 
+  print(n=10)
+```
