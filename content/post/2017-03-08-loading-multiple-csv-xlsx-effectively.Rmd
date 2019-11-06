@@ -3,18 +3,13 @@ title: Loading multiple *.csv (*.xlsx) effectively
 author: Petr Schönbauer
 date: '2017-03-08'
 slug: loading-multiple-csv-xlsx-effectively
-categories: []
 tags:
   - ggplot2
   - map
   - R
-description: Desc
-hacker_news_id: ''
-lobsters_id: ''
-meta_img: /images/image.jpg
 ---
 
-This brief post is a "how to" load multiple `csv` / `xlsx` files into single data frame. Say, we have a couple of *.xlsx files in one folder (some of them in sub-directories) and we would like to bind them all into one. Quite common task. Let´s do it:)
+This brief post is a "how to" load multiple `csv` / `xlsx` files into single data frame. Say, we have a couple of *.xlsx files in one folder (some of them in sub-directories) and we would like to bind them all into one. Quite common task. Let´s do it..
 
 ```{r, message=FALSE}
 library(tidyverse)
@@ -45,7 +40,10 @@ These are first 5 records of first file.
 Use `bind_rows` to bind the list into one tibble (data frame). Argument `.id` allows you to create a column with the name of source file.
 
 ```{r}
-df <- bind_rows(lst, .id = "filename")
+df <- lst %>% 
+  # set names to list items first 
+  set_names(x %>% basename) %>% 
+  bind_rows(.id = "filename")
 head(df)
 ```
 
@@ -54,13 +52,15 @@ head(df)
 Let´s pipe all these steps into single chunk of code.
 
 ```{r}
-list.files(path = "../../static/data/multiple", full.names = TRUE, recursive = TRUE, pattern = "*.xlsx") %>% 
+x <- list.files(path = "../../static/data/multiple", full.names = TRUE, recursive = TRUE, pattern = "*.xlsx") 
+x %>% 
   map(read_excel, sheet = "Value Assessment") %>% 
+  set_names(x %>% basename) %>% 
   bind_rows(.id = "filename") %>% 
   head
 ```
 
-Actually, you can reduce it to two lines using `map_df`:)
+Actually, you can reduce it to two lines using `map_df`..Note that without setting the names.
 
 ```{r}
 list.files(path = "../../static/data/multiple", full.names = TRUE, recursive = TRUE, pattern = "*.xlsx") %>% 
@@ -68,4 +68,4 @@ list.files(path = "../../static/data/multiple", full.names = TRUE, recursive = T
   head
 ```
 
-Pipes are cool, makes your life easier. Two lines of code, but very powerfull;)
+Pipes are cool, makes your life easier. Two lines of code, but very powerfull.

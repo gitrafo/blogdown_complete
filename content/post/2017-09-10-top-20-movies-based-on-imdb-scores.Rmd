@@ -7,7 +7,6 @@ tags:
 - R
 - IMBD
 - ggplot2
-categories: []
 ---
 
 ```{r setup, include=FALSE}
@@ -17,7 +16,6 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r, echo=TRUE, message=FALSE, warning=FALSE}
 # load libraries
 library(tidyverse)
-library(stringr)
 library(shiny)
 ```
 
@@ -28,10 +26,8 @@ library(shiny)
 ```{r, message=FALSE, warning=FALSE}
 # load data
 raw <- read_csv("../../static/data/movie_data.csv")
-
 # structure of data
 glimpse(raw)
-
 # show character and numeric variables separately
 raw %>% 
   select_if(is.character) %>% 
@@ -93,7 +89,7 @@ df %>%
   count()
 ```
 
-# Simple exploratory analysis (static vs. interactive)
+# Simple exploratory analysis
 
 ## Top 20 movies according to IMDB scores
 
@@ -158,53 +154,4 @@ df %>%
         plot.subtitle = element_text(face = "italic", size = 11, hjust = 0))
 ```
 
-## Top n movies by country - interactive (Shiny) approach
-
-Simple user interface in Shiny allows interactive data visualization much simpler, here just the screenshot with code example (R-server neccessary in order to run Shiny apps).
-
-![](https://imgur.com/r68yUFs)
-
-The code itself is quite self-explanatory. 
-
-```{r, eval=FALSE, include=TRUE}
-# build UI
-inputPanel(selectInput(inputId = "country", label = "country", choices = df %>% 
-              filter(num_voted_users > 10000) %>% 
-              distinct(country) %>% 
-              .$country %>% 
-              sort),
-           
-           sliderInput(inputId = "slider", label = "top n", min = 0, max = 20, value = 10, step = 1)
-           )
-
-# create reactive variable df_shiny
-df_shiny <- reactive({
-  df %>% 
-  filter(num_voted_users > 10000) %>% 
-  filter(country %in% input$country) %>% 
-  arrange(desc(imdb_score)) %>% 
-  slice(1:input$slider)
-})
-
-# render plot if df_shiny has changed
-renderPlot({
-  df_shiny() %>% 
-    ggplot(aes(reorder(movie_title, imdb_score), imdb_score, fill = country)) +
-    geom_bar(stat = "identity") +
-    scale_y_continuous(breaks = seq(0,10,1)) +
-    coord_flip() +
-    labs(title = paste("Top",input$slider,"movies according to IMDB scores"),
-         y = "IMDB score",
-         x = "Movie title") +
-    theme(plot.title = element_text(face = "bold",
-                                    size = 16,
-                                    hjust = 0),
-          plot.subtitle = element_text(face = "italic",
-                                       size = 11,
-                                       hjust = 0),
-          axis.text = element_text(size = 12),
-          axis.title = element_text(size = 14)
-    )
-})
-```
 

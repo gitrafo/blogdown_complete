@@ -7,14 +7,12 @@ tags:
 - R
 - IMBD
 - ggplot2
-categories: []
 ---
 
 
 
 <pre class="r"><code># load libraries
 library(tidyverse)
-library(stringr)
 library(shiny)</code></pre>
 <div id="basic-data-wrangling-first" class="section level1">
 <h1>Basic data wrangling first</h1>
@@ -22,7 +20,6 @@ library(shiny)</code></pre>
 <h2>Load and check the data structure</h2>
 <pre class="r"><code># load data
 raw &lt;- read_csv(&quot;../../static/data/movie_data.csv&quot;)
-
 # structure of data
 glimpse(raw)</code></pre>
 <pre><code>## Observations: 5,043
@@ -149,8 +146,8 @@ df %&gt;%
 ## 1  4916</code></pre>
 </div>
 </div>
-<div id="simple-exploratory-analysis-static-vs.-interactive" class="section level1">
-<h1>Simple exploratory analysis (static vs. interactive)</h1>
+<div id="simple-exploratory-analysis" class="section level1">
+<h1>Simple exploratory analysis</h1>
 <div id="top-20-movies-according-to-imdb-scores" class="section level2">
 <h2>Top 20 movies according to IMDB scores</h2>
 <p>First check the <code>num_voted_users</code> of movies with top 10 <code>imdb_scores</code>.</p>
@@ -217,50 +214,5 @@ df %&gt;%
   theme(plot.title = element_text(face = &quot;bold&quot;, size = 16, hjust = 0),
         plot.subtitle = element_text(face = &quot;italic&quot;, size = 11, hjust = 0))</code></pre>
 <p><img src="/post/2017-09-10-top-20-movies-based-on-imdb-scores_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
-</div>
-<div id="top-n-movies-by-country---interactive-shiny-approach" class="section level2">
-<h2>Top n movies by country - interactive (Shiny) approach</h2>
-<p>Simple user interface in Shiny allows interactive data visualization much simpler, here just the screenshot with code example (R-server neccessary in order to run Shiny apps).</p>
-<p><img src="https://imgur.com/r68yUFs" /></p>
-<p>The code itself is quite self-explanatory.</p>
-<pre class="r"><code># build UI
-inputPanel(selectInput(inputId = &quot;country&quot;, label = &quot;country&quot;, choices = df %&gt;% 
-              filter(num_voted_users &gt; 10000) %&gt;% 
-              distinct(country) %&gt;% 
-              .$country %&gt;% 
-              sort),
-           
-           sliderInput(inputId = &quot;slider&quot;, label = &quot;top n&quot;, min = 0, max = 20, value = 10, step = 1)
-           )
-
-# create reactive variable df_shiny
-df_shiny &lt;- reactive({
-  df %&gt;% 
-  filter(num_voted_users &gt; 10000) %&gt;% 
-  filter(country %in% input$country) %&gt;% 
-  arrange(desc(imdb_score)) %&gt;% 
-  slice(1:input$slider)
-})
-
-# render plot if df_shiny has changed
-renderPlot({
-  df_shiny() %&gt;% 
-    ggplot(aes(reorder(movie_title, imdb_score), imdb_score, fill = country)) +
-    geom_bar(stat = &quot;identity&quot;) +
-    scale_y_continuous(breaks = seq(0,10,1)) +
-    coord_flip() +
-    labs(title = paste(&quot;Top&quot;,input$slider,&quot;movies according to IMDB scores&quot;),
-         y = &quot;IMDB score&quot;,
-         x = &quot;Movie title&quot;) +
-    theme(plot.title = element_text(face = &quot;bold&quot;,
-                                    size = 16,
-                                    hjust = 0),
-          plot.subtitle = element_text(face = &quot;italic&quot;,
-                                       size = 11,
-                                       hjust = 0),
-          axis.text = element_text(size = 12),
-          axis.title = element_text(size = 14)
-    )
-})</code></pre>
 </div>
 </div>

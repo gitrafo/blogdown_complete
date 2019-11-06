@@ -124,7 +124,7 @@ library(tidyverse)library(magick)library(tesseract)Sample imageWe need some 
       <pubDate>Sun, 10 Sep 2017 00:00:00 +0000</pubDate>
       
       <guid>/2017/09/10/top-20-movies-based-on-imdb-scores/</guid>
-      <description># load librarieslibrary(tidyverse)library(stringr)library(shiny)Basic data wrangling firstLoad and check the data structure# load dataraw &amp;lt;- read_csv(&amp;quot;../../static/data/movie_data.csv&amp;quot;)# structure of dataglimpse(raw)## Observations: 5,043## Variables: 28## $ color &amp;lt;chr&amp;gt; &amp;quot;Color&amp;quot;, &amp;quot;Color&amp;quot;, &amp;quot;Color&amp;quot;, &amp;quot;Color&amp;quot;, ...## $ director_name &amp;lt;chr&amp;gt; &amp;quot;James Cameron&amp;quot;, &amp;quot;Gore Verbinski&amp;quot;, &amp;quot;...## $ num_critic_for_reviews &amp;lt;dbl&amp;gt; 723, 302, 602, 813, NA, 462, 392, 32...## $ duration &amp;lt;dbl&amp;gt; 178, 169, 148, 164, NA, 132, 156, 10.</description>
+      <description># load librarieslibrary(tidyverse)library(shiny)Basic data wrangling firstLoad and check the data structure# load dataraw &amp;lt;- read_csv(&amp;quot;../../static/data/movie_data.csv&amp;quot;)# structure of dataglimpse(raw)## Observations: 5,043## Variables: 28## $ color &amp;lt;chr&amp;gt; &amp;quot;Color&amp;quot;, &amp;quot;Color&amp;quot;, &amp;quot;Color&amp;quot;, &amp;quot;Color&amp;quot;, ...## $ director_name &amp;lt;chr&amp;gt; &amp;quot;James Cameron&amp;quot;, &amp;quot;Gore Verbinski&amp;quot;, &amp;quot;...## $ num_critic_for_reviews &amp;lt;dbl&amp;gt; 723, 302, 602, 813, NA, 462, 392, 32...## $ duration &amp;lt;dbl&amp;gt; 178, 169, 148, 164, NA, 132, 156, 10.</description>
     </item>
     
     <item>
@@ -133,7 +133,7 @@ library(tidyverse)library(magick)library(tesseract)Sample imageWe need some 
       <pubDate>Wed, 08 Mar 2017 00:00:00 +0000</pubDate>
       
       <guid>/2017/03/08/loading-multiple-csv-xlsx-effectively/</guid>
-      <description>This brief post is a “how to” load multiple csv / xlsx files into single data frame. Say, we have a couple of *.xlsx files in one folder (some of them in sub-directories) and we would like to bind them all into one. Quite common task. Let´s do it:)
+      <description>This brief post is a “how to” load multiple csv / xlsx files into single data frame. Say, we have a couple of *.xlsx files in one folder (some of them in sub-directories) and we would like to bind them all into one. Quite common task. Let´s do it..
 library(tidyverse)library(readxl)Step 1list.files function with argument full.names = TRUE (preserving complete path to all files) and argument recursive = TRUE is handy in case your files are in any level of sub-directories (represented with “next_level” folder in my case).</description>
     </item>
     

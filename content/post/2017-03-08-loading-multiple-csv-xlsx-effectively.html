@@ -3,20 +3,15 @@ title: Loading multiple *.csv (*.xlsx) effectively
 author: Petr Schönbauer
 date: '2017-03-08'
 slug: loading-multiple-csv-xlsx-effectively
-categories: []
 tags:
   - ggplot2
   - map
   - R
-description: Desc
-hacker_news_id: ''
-lobsters_id: ''
-meta_img: /images/image.jpg
 ---
 
 
 
-<p>This brief post is a “how to” load multiple <code>csv</code> / <code>xlsx</code> files into single data frame. Say, we have a couple of *.xlsx files in one folder (some of them in sub-directories) and we would like to bind them all into one. Quite common task. Let´s do it:)</p>
+<p>This brief post is a “how to” load multiple <code>csv</code> / <code>xlsx</code> files into single data frame. Say, we have a couple of *.xlsx files in one folder (some of them in sub-directories) and we would like to bind them all into one. Quite common task. Let´s do it..</p>
 <pre class="r"><code>library(tidyverse)
 library(readxl)</code></pre>
 <div id="step-1" class="section level1">
@@ -24,10 +19,10 @@ library(readxl)</code></pre>
 <p><code>list.files</code> function with argument <code>full.names = TRUE</code> (preserving complete path to all files) and argument <code>recursive = TRUE</code> is handy in case your files are in any level of sub-directories (represented with “next_level” folder in my case).</p>
 <pre class="r"><code>x &lt;- list.files(path = &quot;../../static/data/multiple&quot;, full.names = TRUE, recursive = TRUE, pattern = &quot;*.xlsx&quot;)
 x</code></pre>
-<pre><code>## [1] &quot;../../static/data/multiple/1.xlsx&quot;           
-## [2] &quot;../../static/data/multiple/2.xlsx&quot;           
-## [3] &quot;../../static/data/multiple/3.xlsx&quot;           
-## [4] &quot;../../static/data/multiple/next_level/4.xlsx&quot;</code></pre>
+<pre><code>## [1] &quot;../../static/data/multiple/file_1.xlsx&quot;           
+## [2] &quot;../../static/data/multiple/file_2.xlsx&quot;           
+## [3] &quot;../../static/data/multiple/file_3.xlsx&quot;           
+## [4] &quot;../../static/data/multiple/next_level/file_4.xlsx&quot;</code></pre>
 <p>Now I have the <code>x</code> vector with all full paths to all "*.xlsx" files.</p>
 </div>
 <div id="step-2" class="section level1">
@@ -50,37 +45,42 @@ head(lst[[1]])</code></pre>
 <div id="step-3" class="section level1">
 <h1>Step 3</h1>
 <p>Use <code>bind_rows</code> to bind the list into one tibble (data frame). Argument <code>.id</code> allows you to create a column with the name of source file.</p>
-<pre class="r"><code>df &lt;- bind_rows(lst, .id = &quot;filename&quot;)
+<pre class="r"><code>df &lt;- lst %&gt;% 
+  # set names to list items first 
+  set_names(x %&gt;% basename) %&gt;% 
+  bind_rows(.id = &quot;filename&quot;)
 head(df)</code></pre>
 <pre><code>## # A tibble: 6 x 11
 ##   filename Value Count Pattern Length Form  Case  Content Spacing Category
 ##   &lt;chr&gt;    &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;   &lt;chr&gt;  &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;   &lt;chr&gt;   &lt;chr&gt;   
-## 1 1        0     126   N       1      Nume~ Not ~ Single  Valid   Questio~
-## 2 1        0.01  1     NPNN    4      Nume~ Not ~ Single  Valid   Appears~
-## 3 1        0.33  1     NPNN    4      Nume~ Not ~ Single  Valid   Appears~
-## 4 1        0.36  3     NPNN    4      Nume~ Not ~ Single  Valid   Appears~
-## 5 1        0.39  1     NPNN    4      Nume~ Not ~ Single  Valid   Appears~
-## 6 1        0.44  1     NPNN    4      Nume~ Not ~ Single  Valid   Appears~
+## 1 file_1.~ 0     126   N       1      Nume~ Not ~ Single  Valid   Questio~
+## 2 file_1.~ 0.01  1     NPNN    4      Nume~ Not ~ Single  Valid   Appears~
+## 3 file_1.~ 0.33  1     NPNN    4      Nume~ Not ~ Single  Valid   Appears~
+## 4 file_1.~ 0.36  3     NPNN    4      Nume~ Not ~ Single  Valid   Appears~
+## 5 file_1.~ 0.39  1     NPNN    4      Nume~ Not ~ Single  Valid   Appears~
+## 6 file_1.~ 0.44  1     NPNN    4      Nume~ Not ~ Single  Valid   Appears~
 ## # ... with 1 more variable: `Assessment Note` &lt;chr&gt;</code></pre>
 </div>
 <div id="pipe-pipe-pipe" class="section level1">
 <h1>Pipe pipe pipe</h1>
 <p>Let´s pipe all these steps into single chunk of code.</p>
-<pre class="r"><code>list.files(path = &quot;../../static/data/multiple&quot;, full.names = TRUE, recursive = TRUE, pattern = &quot;*.xlsx&quot;) %&gt;% 
+<pre class="r"><code>x &lt;- list.files(path = &quot;../../static/data/multiple&quot;, full.names = TRUE, recursive = TRUE, pattern = &quot;*.xlsx&quot;) 
+x %&gt;% 
   map(read_excel, sheet = &quot;Value Assessment&quot;) %&gt;% 
+  set_names(x %&gt;% basename) %&gt;% 
   bind_rows(.id = &quot;filename&quot;) %&gt;% 
   head</code></pre>
 <pre><code>## # A tibble: 6 x 11
 ##   filename Value Count Pattern Length Form  Case  Content Spacing Category
 ##   &lt;chr&gt;    &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;   &lt;chr&gt;  &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;   &lt;chr&gt;   &lt;chr&gt;   
-## 1 1        0     126   N       1      Nume~ Not ~ Single  Valid   Questio~
-## 2 1        0.01  1     NPNN    4      Nume~ Not ~ Single  Valid   Appears~
-## 3 1        0.33  1     NPNN    4      Nume~ Not ~ Single  Valid   Appears~
-## 4 1        0.36  3     NPNN    4      Nume~ Not ~ Single  Valid   Appears~
-## 5 1        0.39  1     NPNN    4      Nume~ Not ~ Single  Valid   Appears~
-## 6 1        0.44  1     NPNN    4      Nume~ Not ~ Single  Valid   Appears~
+## 1 file_1.~ 0     126   N       1      Nume~ Not ~ Single  Valid   Questio~
+## 2 file_1.~ 0.01  1     NPNN    4      Nume~ Not ~ Single  Valid   Appears~
+## 3 file_1.~ 0.33  1     NPNN    4      Nume~ Not ~ Single  Valid   Appears~
+## 4 file_1.~ 0.36  3     NPNN    4      Nume~ Not ~ Single  Valid   Appears~
+## 5 file_1.~ 0.39  1     NPNN    4      Nume~ Not ~ Single  Valid   Appears~
+## 6 file_1.~ 0.44  1     NPNN    4      Nume~ Not ~ Single  Valid   Appears~
 ## # ... with 1 more variable: `Assessment Note` &lt;chr&gt;</code></pre>
-<p>Actually, you can reduce it to two lines using <code>map_df</code>:)</p>
+<p>Actually, you can reduce it to two lines using <code>map_df</code>..Note that without setting the names.</p>
 <pre class="r"><code>list.files(path = &quot;../../static/data/multiple&quot;, full.names = TRUE, recursive = TRUE, pattern = &quot;*.xlsx&quot;) %&gt;% 
   map_df(~read_excel(., sheet = &quot;Value Assessment&quot;), .id = &quot;filename&quot;) %&gt;% 
   head</code></pre>
@@ -94,5 +94,5 @@ head(df)</code></pre>
 ## 5 1        0.39  1     NPNN    4      Nume~ Not ~ Single  Valid   Appears~
 ## 6 1        0.44  1     NPNN    4      Nume~ Not ~ Single  Valid   Appears~
 ## # ... with 1 more variable: `Assessment Note` &lt;chr&gt;</code></pre>
-<p>Pipes are cool, makes your life easier. Two lines of code, but very powerfull;)</p>
+<p>Pipes are cool, makes your life easier. Two lines of code, but very powerfull.</p>
 </div>
