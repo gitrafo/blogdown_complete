@@ -3,10 +3,13 @@ title: Temperature change in Czech Republic - part II
 author: Petr Schönbauer
 date: '2018-12-18'
 slug: temperature-change-in-czech-republic-part-ii
-categories: []
 tags:
   - broom
 ---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(warning = FALSE)
+```
 
 ```{r, message=FALSE}
 library(tidyverse)
@@ -46,7 +49,7 @@ df
 
 ## Claim - "The precipitation in Czech Republic decreases over last decades."
 
-```{r, warning=FALSE}
+```{r}
 df %>% 
   
   filter(key == "precipitation") %>% 
@@ -80,6 +83,7 @@ df %>%
   labs(y = "precipitation [mm]", x = "year") +
   facet_wrap(~season, scales = "free")
 ```
+
 Well, seems to be quite stable, no drama here.
 
 ## Claim - "The temperature in Czech Republic increases over last decades."
@@ -120,5 +124,3 @@ df %>%
 ```
 
 ..°C per year.
-
-More to come....

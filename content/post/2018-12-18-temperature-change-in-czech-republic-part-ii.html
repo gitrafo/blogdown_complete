@@ -3,7 +3,6 @@ title: Temperature change in Czech Republic - part II
 author: Petr Schönbauer
 date: '2018-12-18'
 slug: temperature-change-in-czech-republic-part-ii
-categories: []
 tags:
   - broom
 ---
@@ -119,10 +118,8 @@ df</code></pre>
   theme(axis.text.x = element_text(angle = 75, hjust = 1)) + 
   labs(y = &quot;precipitation [mm]&quot;, x = &quot;year&quot;) +
   facet_wrap(~season, scales = &quot;free&quot;)</code></pre>
-<pre><code>## Warning: Removed 1 rows containing non-finite values (stat_smooth).</code></pre>
-<pre><code>## Warning: Removed 1 rows containing missing values (position_stack).</code></pre>
-<p><img src="/post/2018-12-18-temperature-change-in-czech-republic-part-ii_files/figure-html/unnamed-chunk-7-1.png" width="672" />
-Well, seems to be quite stable, no drama here.</p>
+<p><img src="/post/2018-12-18-temperature-change-in-czech-republic-part-ii_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+<p>Well, seems to be quite stable, no drama here.</p>
 </div>
 <div id="claim---the-temperature-in-czech-republic-increases-over-last-decades." class="section level2">
 <h2>Claim - “The temperature in Czech Republic increases over last decades.”</h2>
@@ -138,8 +135,6 @@ Well, seems to be quite stable, no drama here.</p>
   theme(axis.text.x = element_text(angle = 75, hjust = 1)) + 
   labs(y = &quot;°C&quot;, x = &quot;year&quot;) + 
   facet_wrap(~region)</code></pre>
-<pre><code>## Warning: Removed 2 rows containing non-finite values (stat_smooth).</code></pre>
-<pre><code>## Warning: Removed 2 rows containing missing values (position_stack).</code></pre>
 <p><img src="/post/2018-12-18-temperature-change-in-czech-republic-part-ii_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
 <p>Yes, it does increase. On average by:</p>
 <pre class="r"><code>df %&gt;% 
@@ -159,6 +154,5 @@ Well, seems to be quite stable, no drama here.</p>
   round(3)</code></pre>
 <pre><code>## [1] 0.031</code></pre>
 <p>..°C per year.</p>
-<p>More to come….</p>
 </div>
 </div>

@@ -132,7 +132,7 @@ df %>%
 
 As expected, most of the movies were produced in US.
 
-## Top n movies by country - the "static" approach first
+## Top n movies by country
 
 Say, I´m interested in top 10 movies from UK only.
 
@@ -153,5 +153,3 @@ df %>%
   theme(plot.title = element_text(face = "bold", size = 16, hjust = 0),
         plot.subtitle = element_text(face = "italic", size = 11, hjust = 0))
 ```
-
-

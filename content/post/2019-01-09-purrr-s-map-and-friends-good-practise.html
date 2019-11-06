@@ -3,7 +3,6 @@ title: Purrr´s map and friends - good practise
 author: Petr Schönbauer
 date: '2019-01-09'
 slug: purrr-s-map-and-friends-good-practise
-categories: []
 tags:
   - R
   - purrr
@@ -256,48 +255,22 @@ df</code></pre>
 <p>Using <code>unnest</code> comes handy now? Nope yet..</p>
 <pre class="r"><code>df %&gt;% 
   unnest()</code></pre>
-<pre><code>## Error: Each column must either be a list of vectors or a list of data frames [aliases]
-## Backtrace:
-## [90m     [39mx
-## [90m  1. [39m+-base::local(...)
-## [90m  2. [39m| \-base::eval.parent(substitute(eval(quote(expr), envir)))
-## [90m  3. [39m|   \-base::eval(expr, p)
-## [90m  4. [39m|     \-base::eval(expr, p)
-## [90m  5. [39m+-base::eval(...)
-## [90m  6. [39m| \-base::eval(...)
-## [90m  7. [39m|   \-rmarkdown::render(...)
-## [90m  8. [39m|     \-knitr::knit(...)
-## [90m  9. [39m|       \-knitr:::process_file(text, output)
-## [90m 10. [39m|         +-base::withCallingHandlers(...)
-## [90m 11. [39m|         +-knitr:::process_group(group)
-## [90m 12. [39m|         \-knitr:::process_group.block(group)
-## [90m 13. [39m|           \-knitr:::call_block(x)
-## [90m 14. [39m|             \-knitr:::block_exec(params)
-## [90m 15. [39m|               +-knitr:::in_dir(...)
-## [90m 16. [39m|               \-knitr:::evaluate(...)
-## [90m 17. [39m|                 \-evaluate::evaluate(...)
-## [90m 18. [39m|                   \-evaluate:::evaluate_call(...)
-## [90m 19. [39m|                     +-evaluate:::timing_fn(...)
-## [90m 20. [39m|                     +-evaluate:::handle(...)
-## [90m 21. [39m|                     | \-base::try(f, silent = TRUE)
-## [90m 22. [39m|                     |   \-base::tryCatch(...)
-## [90m 23. [39m|                     |     \-base:::tryCatchList(expr, classes, parentenv, handlers)
-## [90m 24. [39m|                     |       \-base:::tryCatchOne(expr, names, parentenv, handlers[[1L]])
-## [90m 25. [39m|                     |         \-base:::doTryCatch(return(expr), name, parentenv, handler)
-## [90m 26. [39m|                     +-base::withCallingHandlers(...)
-## [90m 27. [39m|                     +-base::withVisible(eval(expr, envir, enclos))
-## [90m 28. [39m|                     \-base::eval(expr, envir, enclos)
-## [90m 29. [39m|                       \-base::eval(expr, envir, enclos)
-## [90m 30. [39m\-df %&gt;% unnest()
-## [90m 31. [39m  +-base::withVisible(eval(quote(`_fseq`(`_lhs`)), env, env))
-## [90m 32. [39m  \-base::eval(quote(`_fseq`(`_lhs`)), env, env)
-## [90m 33. [39m    \-base::eval(quote(`_fseq`(`_lhs`)), env, env)
-## [90m 34. [39m      \-global::`_fseq`(`_lhs`)
-## [90m 35. [39m        \-magrittr::freduce(value, `_function_list`)
-## [90m 36. [39m          +-base::withVisible(function_list[[k]](value))
-## [90m 37. [39m          \-function_list[[k]](value)
-## [90m 38. [39m            +-tidyr::unnest(.)
-## [90m 39. [39m            \-tidyr:::unnest.data.frame(.)</code></pre>
+<pre><code>## Warning: `cols` is now required.
+## Please use `cols = c(aliases)`</code></pre>
+<pre><code>## # A tibble: 114 x 4
+##    name                id gender aliases           
+##    &lt;chr&gt;            &lt;int&gt; &lt;chr&gt;  &lt;chr&gt;             
+##  1 Theon Greyjoy     1022 Male   Prince of Fools   
+##  2 Theon Greyjoy     1022 Male   Theon Turncloak   
+##  3 Theon Greyjoy     1022 Male   Reek              
+##  4 Theon Greyjoy     1022 Male   Theon Kinslayer   
+##  5 Tyrion Lannister  1052 Male   The Imp           
+##  6 Tyrion Lannister  1052 Male   Halfman           
+##  7 Tyrion Lannister  1052 Male   The boyman        
+##  8 Tyrion Lannister  1052 Male   Giant of Lannister
+##  9 Tyrion Lannister  1052 Male   Lord Tywin&#39;s Doom 
+## 10 Tyrion Lannister  1052 Male   Lord Tywin&#39;s Bane 
+## # ... with 104 more rows</code></pre>
 <p>..it is because some of alias has NA (NULL) value (# NULL are the list-col equivalent of NAs):</p>
 <pre class="r"><code>df$aliases %&gt;% map_lgl(is.null)</code></pre>
 <pre><code>##  [1] FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE
@@ -307,6 +280,8 @@ df</code></pre>
 <pre class="r"><code>df %&gt;% 
   replace_na(list(aliases=list(&quot;&quot;))) %&gt;% 
   unnest()</code></pre>
+<pre><code>## Warning: `cols` is now required.
+## Please use `cols = c(aliases)`</code></pre>
 <pre><code>## # A tibble: 115 x 4
 ##    name                id gender aliases           
 ##    &lt;chr&gt;            &lt;int&gt; &lt;chr&gt;  &lt;chr&gt;             
@@ -359,19 +334,23 @@ df</code></pre>
   mutate(aliases =  data %&gt;% map(~.$aliases)) %&gt;%
   replace_na(list(aliases = list(&quot;&quot;))) %&gt;% 
   unnest(aliases, .drop = FALSE)</code></pre>
+<pre><code>## Warning: The `.drop` argument of `unnest()` is deprecated as of tidyr 1.0.0.
+## All list-columns are now preserved.
+## This warning is displayed once per session.
+## Call `lifecycle::last_warnings()` to see where this warning was generated.</code></pre>
 <pre><code>## # A tibble: 115 x 5
-##    name             data           id  id_2 aliases           
-##    &lt;chr&gt;            &lt;list&gt;      &lt;int&gt; &lt;int&gt; &lt;chr&gt;             
-##  1 Theon Greyjoy    &lt;list [18]&gt;  1022  1022 Prince of Fools   
-##  2 Theon Greyjoy    &lt;list [18]&gt;  1022  1022 Theon Turncloak   
-##  3 Theon Greyjoy    &lt;list [18]&gt;  1022  1022 Reek              
-##  4 Theon Greyjoy    &lt;list [18]&gt;  1022  1022 Theon Kinslayer   
-##  5 Tyrion Lannister &lt;list [18]&gt;  1052  1052 The Imp           
-##  6 Tyrion Lannister &lt;list [18]&gt;  1052  1052 Halfman           
-##  7 Tyrion Lannister &lt;list [18]&gt;  1052  1052 The boyman        
-##  8 Tyrion Lannister &lt;list [18]&gt;  1052  1052 Giant of Lannister
-##  9 Tyrion Lannister &lt;list [18]&gt;  1052  1052 Lord Tywin&#39;s Doom 
-## 10 Tyrion Lannister &lt;list [18]&gt;  1052  1052 Lord Tywin&#39;s Bane 
+##    name             data                 id  id_2 aliases           
+##    &lt;chr&gt;            &lt;list&gt;            &lt;int&gt; &lt;int&gt; &lt;chr&gt;             
+##  1 Theon Greyjoy    &lt;named list [18]&gt;  1022  1022 Prince of Fools   
+##  2 Theon Greyjoy    &lt;named list [18]&gt;  1022  1022 Theon Turncloak   
+##  3 Theon Greyjoy    &lt;named list [18]&gt;  1022  1022 Reek              
+##  4 Theon Greyjoy    &lt;named list [18]&gt;  1022  1022 Theon Kinslayer   
+##  5 Tyrion Lannister &lt;named list [18]&gt;  1052  1052 The Imp           
+##  6 Tyrion Lannister &lt;named list [18]&gt;  1052  1052 Halfman           
+##  7 Tyrion Lannister &lt;named list [18]&gt;  1052  1052 The boyman        
+##  8 Tyrion Lannister &lt;named list [18]&gt;  1052  1052 Giant of Lannister
+##  9 Tyrion Lannister &lt;named list [18]&gt;  1052  1052 Lord Tywin&#39;s Doom 
+## 10 Tyrion Lannister &lt;named list [18]&gt;  1052  1052 Lord Tywin&#39;s Bane 
 ## # ... with 105 more rows</code></pre>
 </div>
 </div>
@@ -577,17 +556,17 @@ t %&gt;%
   mutate(owner_url = data %&gt;% map_chr(~.[[1]]$owner$url)) %&gt;% 
   unnest(package, .drop = FALSE)</code></pre>
 <pre><code>## # A tibble: 176 x 4
-##    name        data        owner_url                             package   
-##    &lt;chr&gt;       &lt;list&gt;      &lt;chr&gt;                                 &lt;chr&gt;     
-##  1 gaborcsardi &lt;list [30]&gt; https://api.github.com/users/gaborcs~ after     
-##  2 gaborcsardi &lt;list [30]&gt; https://api.github.com/users/gaborcs~ argufy    
-##  3 gaborcsardi &lt;list [30]&gt; https://api.github.com/users/gaborcs~ ask       
-##  4 gaborcsardi &lt;list [30]&gt; https://api.github.com/users/gaborcs~ baseimpor~
-##  5 gaborcsardi &lt;list [30]&gt; https://api.github.com/users/gaborcs~ citest    
-##  6 gaborcsardi &lt;list [30]&gt; https://api.github.com/users/gaborcs~ clisymbols
-##  7 gaborcsardi &lt;list [30]&gt; https://api.github.com/users/gaborcs~ cmaker    
-##  8 gaborcsardi &lt;list [30]&gt; https://api.github.com/users/gaborcs~ cmark     
-##  9 gaborcsardi &lt;list [30]&gt; https://api.github.com/users/gaborcs~ conditions
-## 10 gaborcsardi &lt;list [30]&gt; https://api.github.com/users/gaborcs~ crayon    
+##    name        data        package    owner_url                            
+##    &lt;chr&gt;       &lt;list&gt;      &lt;chr&gt;      &lt;chr&gt;                                
+##  1 gaborcsardi &lt;list [30]&gt; after      https://api.github.com/users/gaborcs~
+##  2 gaborcsardi &lt;list [30]&gt; argufy     https://api.github.com/users/gaborcs~
+##  3 gaborcsardi &lt;list [30]&gt; ask        https://api.github.com/users/gaborcs~
+##  4 gaborcsardi &lt;list [30]&gt; baseimpor~ https://api.github.com/users/gaborcs~
+##  5 gaborcsardi &lt;list [30]&gt; citest     https://api.github.com/users/gaborcs~
+##  6 gaborcsardi &lt;list [30]&gt; clisymbols https://api.github.com/users/gaborcs~
+##  7 gaborcsardi &lt;list [30]&gt; cmaker     https://api.github.com/users/gaborcs~
+##  8 gaborcsardi &lt;list [30]&gt; cmark      https://api.github.com/users/gaborcs~
+##  9 gaborcsardi &lt;list [30]&gt; conditions https://api.github.com/users/gaborcs~
+## 10 gaborcsardi &lt;list [30]&gt; crayon     https://api.github.com/users/gaborcs~
 ## # ... with 166 more rows</code></pre>
 </div>

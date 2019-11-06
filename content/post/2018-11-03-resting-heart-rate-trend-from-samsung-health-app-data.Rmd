@@ -133,9 +133,4 @@ df_clean %>%
 
 Considering my usual wake-up time window my `resting heart rate` is ~60bmp.
 
-The message for me is not to take the internal tagging logic of Samsung´s app seriously. I will re-run the script once collect more data - that´s cool about scripting:)
-
-Hope you liked this post:).
-
-
-
+The message for me is not to take the internal tagging logic of Samsung´s app seriously.

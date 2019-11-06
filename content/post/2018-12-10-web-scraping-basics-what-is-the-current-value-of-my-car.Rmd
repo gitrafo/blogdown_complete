@@ -39,7 +39,7 @@ max <- path %>%
   html_text()
 max
 ```
-..pages, each with 100 cars. Now you may ask how did I know which node to use? And an answer would be simple - using SelectorGadget tool. It is pretty cool tool allowing you to select any item on web page of your interest and provide "node" to it. You can find out how to use it [here](https://selectorgadget.com/).
+..pages, each with 100 cars. Now you may ask how did I know which node to use? And an answer would be simple - using `SelectorGadget` tool. It is pretty cool tool allowing you to select any item on web page of your interest and provide "node" to it. You can find out how to use it [here](https://selectorgadget.com/).
 
 # Load all URLs
 Now we can use information about number of pages to create vector of sites we will scrape.
@@ -164,4 +164,4 @@ final %>%
   labs(title = "Škoda Rapid 1.2TSI 77kW", subtitle = "based on www.tipcars.com", x = "mileage [km]", y = "cost [Kč]")
 ```
 
-Ok, that´s it. Hope you enjoyed:) ToDo - which car (manufacturer) looses the price fastest.
+Ok, that´s it. Hope you enjoyed:)

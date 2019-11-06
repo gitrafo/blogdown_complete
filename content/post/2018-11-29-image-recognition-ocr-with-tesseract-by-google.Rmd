@@ -3,7 +3,6 @@ title: Image recognition (OCR) with Tesseract by Google
 author: Petr Schönbauer
 date: '2018-11-29'
 slug: image-recognition-ocr-with-tesseract-by-google
-categories: []
 tags:
   - R
   - OCR
@@ -28,7 +27,7 @@ library(tesseract)
 
 We need some testing image. I´m curious especially how well it perform on product labels like serial numbers, etc. (not the barcode, just the text). No need to think a lot - let´s use first one by google search "product label serial number".
 
-![](/img/label.png){width=200px}
+![](/img/label.png){width=400px}
 
 I have no idea what product is this label related to, but it will serve our purpose.
 
@@ -58,7 +57,7 @@ path %>%
   ocr() %>% 
   str_split("\n") %>% 
   unlist %>% 
-  as.tibble()
+  as_tibble()
 ```
 Now we have tibble line by line as recognized from image. Obviously the barcode is mistakenly recognized as text. Besides notice that "P/N:" is recognized as "PIN:" - not exactly what we want.
 
@@ -75,7 +74,7 @@ df <- path %>%
   ocr() %>% 
   str_split("\n") %>% 
   unlist %>% 
-  as.tibble()
+  as_tibble()
 df
 ```
 It is close to what we need. We can see correctly recognized "P/N:". As a next step my first naive approach was filtering "P/N" or "S/N" and then "somehow" get rid off "System" word. However it would be quite hardcoded (but easy). So my instinct tells me - regular expressions:). Here I remembered the famous quote:)

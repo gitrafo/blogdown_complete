@@ -3,7 +3,6 @@ title: Image recognition (OCR) with Tesseract by Google
 author: Petr Schönbauer
 date: '2018-11-29'
 slug: image-recognition-ocr-with-tesseract-by-google
-categories: []
 tags:
   - R
   - OCR
@@ -21,7 +20,7 @@ library(tesseract)</code></pre>
 <div id="sample-image" class="section level2">
 <h2>Sample image</h2>
 <p>We need some testing image. I´m curious especially how well it perform on product labels like serial numbers, etc. (not the barcode, just the text). No need to think a lot - let´s use first one by google search “product label serial number”.</p>
-<p><img src="/img/label.png" width="200" /></p>
+<p><img src="/img/label.png" width="400" /></p>
 <p>I have no idea what product is this label related to, but it will serve our purpose.</p>
 <p>We are interested in P/N and S/N so the expected outcome will be:</p>
 <ul>
@@ -44,8 +43,8 @@ library(tesseract)</code></pre>
   ocr() %&gt;% 
   str_split(&quot;\n&quot;) %&gt;% 
   unlist %&gt;% 
-  as.tibble()</code></pre>
-<pre><code>## Warning: `as.tibble()` is deprecated, use `as_tibble()` (but mind the new semantics).
+  as_tibble()</code></pre>
+<pre><code>## Warning: Calling `as_tibble()` on a vector is discouraged, because the behavior is likely to change in the future. Use `tibble::enframe(name = NULL)` instead.
 ## This warning is displayed once per session.</code></pre>
 <pre><code>## # A tibble: 6 x 1
 ##   value                              
@@ -70,7 +69,7 @@ library(tesseract)</code></pre>
   ocr() %&gt;% 
   str_split(&quot;\n&quot;) %&gt;% 
   unlist %&gt;% 
-  as.tibble()
+  as_tibble()
 df</code></pre>
 <pre><code>## # A tibble: 6 x 1
 ##   value                                    

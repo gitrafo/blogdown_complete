@@ -3,7 +3,6 @@ title: Purrr´s map and friends - good practise
 author: Petr Schönbauer
 date: '2019-01-09'
 slug: purrr-s-map-and-friends-good-practise
-categories: []
 tags:
   - R
   - purrr

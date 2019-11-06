@@ -32,7 +32,7 @@ max &lt;- path %&gt;%
   html_text()
 max</code></pre>
 <pre><code>## [1] &quot;8&quot;</code></pre>
-<p>..pages, each with 100 cars. Now you may ask how did I know which node to use? And an answer would be simple - using SelectorGadget tool. It is pretty cool tool allowing you to select any item on web page of your interest and provide “node” to it. You can find out how to use it <a href="https://selectorgadget.com/">here</a>.</p>
+<p>..pages, each with 100 cars. Now you may ask how did I know which node to use? And an answer would be simple - using <code>SelectorGadget</code> tool. It is pretty cool tool allowing you to select any item on web page of your interest and provide “node” to it. You can find out how to use it <a href="https://selectorgadget.com/">here</a>.</p>
 </div>
 <div id="load-all-urls" class="section level1">
 <h1>Load all URLs</h1>
@@ -74,10 +74,10 @@ df &lt;- html_list %&gt;% map(getText, &quot;.fs-tluste&quot;) %&gt;%  map(~.[2:
   # extract year of production
   mutate(year = html_list %&gt;% map(getText, &quot;.rok_vyroby&quot;) %&gt;% unlist)
 df</code></pre>
-<pre><code>## # A tibble: 773 x 4
+<pre><code>## # A tibble: 772 x 4
 ##    cost       model                    mileage year 
 ##    &lt;chr&gt;      &lt;chr&gt;                    &lt;chr&gt;   &lt;chr&gt;
-##  1 125 024 Kč benzin, 42 kW            39 tkm  1984 
+##  1 125 122 Kč benzin, 42 kW            39 tkm  1984 
 ##  2 129 999 Kč benzin, 1 197 ccm, 63 kW 276 tkm 2014 
 ##  3 134 400 Kč benzin, 1 197 ccm, 63 kW 119 tkm 2014 
 ##  4 149 900 Kč benzin, 1 198 ccm, 55 kW 87 tkm  2013 
@@ -87,7 +87,7 @@ df</code></pre>
 ##  8 160 000 Kč benzin, 1 197 ccm, 63 kW 122 tkm 2013 
 ##  9 164 000 Kč benzin, 1 197 ccm, 63 kW 102 tkm 2013 
 ## 10 168 000 Kč benzin, 1 197 ccm, 66 kW 197 tkm 2015 
-## # ... with 763 more rows</code></pre>
+## # ... with 762 more rows</code></pre>
 <p>Here we have cars of interest (all Škoda Rapid gasoline variants). Let´s decompose it more using a bit of regular expression.</p>
 <pre class="r"><code>final &lt;- df %&gt;% 
   # select numbers only
@@ -108,10 +108,10 @@ df</code></pre>
   mutate(mileage = mileage %&gt;% as.numeric() * 1000) %&gt;% 
   select(model, mileage, cost, kW, year)
 final</code></pre>
-<pre><code>## # A tibble: 773 x 5
+<pre><code>## # A tibble: 772 x 5
 ##    model                    mileage   cost kW    year 
 ##    &lt;chr&gt;                      &lt;dbl&gt;  &lt;dbl&gt; &lt;fct&gt; &lt;chr&gt;
-##  1 benzin, 42 kW              39000 125024 42    1984 
+##  1 benzin, 42 kW              39000 125122 42    1984 
 ##  2 benzin, 1 197 ccm, 63 kW  276000 129999 63    2014 
 ##  3 benzin, 1 197 ccm, 63 kW  119000 134400 63    2014 
 ##  4 benzin, 1 198 ccm, 55 kW   87000 149900 55    2013 
@@ -121,7 +121,7 @@ final</code></pre>
 ##  8 benzin, 1 197 ccm, 63 kW  122000 160000 63    2013 
 ##  9 benzin, 1 197 ccm, 63 kW  102000 164000 63    2013 
 ## 10 benzin, 1 197 ccm, 66 kW  197000 168000 66    2015 
-## # ... with 763 more rows</code></pre>
+## # ... with 762 more rows</code></pre>
 <p>Now the data are ready to be plotted.</p>
 </div>
 <div id="plot-plot-plot" class="section level1">
@@ -182,5 +182,5 @@ paste(round(y), &quot;Kč&quot;)</code></pre>
   geom_smooth(method = &quot;lm&quot;, se = FALSE) + 
   labs(title = &quot;Škoda Rapid 1.2TSI 77kW&quot;, subtitle = &quot;based on www.tipcars.com&quot;, x = &quot;mileage [km]&quot;, y = &quot;cost [Kč]&quot;)</code></pre>
 <p><img src="/post/2018-12-10-web-scraping-basics-what-is-the-current-value-of-my-car_files/figure-html/unnamed-chunk-12-1.png" width="672" /></p>
-<p>Ok, that´s it. Hope you enjoyed:) ToDo - which car (manufacturer) looses the price fastest.</p>
+<p>Ok, that´s it. Hope you enjoyed:)</p>
 </div>

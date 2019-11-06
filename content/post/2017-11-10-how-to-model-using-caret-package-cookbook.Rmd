@@ -3,7 +3,6 @@ title: "How to model using caret package - cookbook"
 author: "Petr Schönbauer"
 date: "2017-11-10"
 slug: how-to-model-using-caret-package-cookbook
-categories: []
 tags:
   - R
   - model
@@ -112,7 +111,6 @@ my_trainControl <- trainControl(
 ```
 
 ## glmnet model
-
 ```{r, message=FALSE, warning=FALSE}
 # train glmnet model
 model_glmnet <- train(x = df_x, y = df_y, 
