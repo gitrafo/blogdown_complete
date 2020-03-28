@@ -5,6 +5,10 @@ date: '2020-03-28'
 slug: covid
 ---
 
-We do face a ton of charts and graphics these days showing us terrible increase of confirmed Covid-19 diseaase across the globe. The total numbers are important but  I was suprised I couldn´t find some comparison of daily inrease of confirmed cases in percent. Even at WHO site.
+We do face a ton of charts and graphics these days showing us terrible increase of confirmed cases of Covid-19 disease across the globe. The total numbers are important but I was suprised I couldn´t find some comparison of daily inrease of confirmed cases in percent.
 
 That is way I decided to put together this [Shiny app](https://datahost.shinyapps.io/covid/) to have a fast comparison.
+
+Link here: [Shiny app](https://datahost.shinyapps.io/covid/)
+
+![](/img/covid.png){width="100%"}
